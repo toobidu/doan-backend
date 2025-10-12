@@ -1,0 +1,152 @@
+package org.example.quizizz.service.Implement;
+
+import org.example.quizizz.service.Interface.IEmailService;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+import java.time.LocalDateTime;
+
+/**
+ * Implementation của Email Service
+ * Sử dụng JavaMailSender và Thymeleaf template để gửi email
+ */
+@Service
+public class EmailServiceImplement implements IEmailService {
+
+    private final JavaMailSender javaMailSender;
+    private final TemplateEngine emailTemplateEngine;
+    private final String fromEmail;
+    private final String companyName;
+    private final String supportUrl;
+
+    public EmailServiceImplement(JavaMailSender javaMailSender,
+                                 TemplateEngine templateEngine,
+                                 @Qualifier("fromEmail") String fromEmail,
+                                 @Qualifier("companyName") String companyName,
+                                 @Qualifier("supportUrl") String supportUrl) {
+        this.javaMailSender = javaMailSender;
+        this.emailTemplateEngine = templateEngine;
+        this.fromEmail = fromEmail;
+        this.companyName = companyName;
+        this.supportUrl = supportUrl;
+    }
+
+    /**
+     * Gửi email reset mật khẩu cho người dùng.
+     * @param toEmail Email người nhận
+     * @param username Tên người dùng
+     * @param newPassword Mật khẩu mới
+     * @return true nếu gửi thành công, false nếu lỗi
+     */
+    @Override
+    public boolean sendPasswordResetEmail(String toEmail, String username, String newPassword) {
+        try {
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            // Thiết lập thông tin email
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Reset Mật Khẩu - " + companyName);
+
+            // Tạo context cho Thymeleaf template
+            Context context = new Context();
+            context.setVariable("username", username);
+            context.setVariable("newResetPassword", newPassword);
+            context.setVariable("companyName", companyName);
+            context.setVariable("supportUrl", supportUrl);
+            context.setVariable("year", LocalDateTime.now().getYear());
+
+            // Render HTML template
+            String htmlContent = emailTemplateEngine.process("reset-password", context);
+            helper.setText(htmlContent, true);
+
+            // Gửi email
+            javaMailSender.send(message);
+
+
+            return true;
+
+        } catch (MessagingException e) {
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Gửi email chào mừng khi người dùng đăng ký mới.
+     * @param toEmail Email người nhận
+     * @param username Tên người dùng
+     * @return true nếu gửi thành công, false nếu lỗi
+     */
+    @Override
+    public boolean sendWelcomeEmail(String toEmail, String username) {
+        try {
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Chào mừng đến với " + companyName);
+
+            String content = String.format("""
+                <html>
+                <body>
+                    <h2>Chào mừng %s!</h2>
+                    <p>Cảm ơn bạn đã đăng ký tài khoản tại %s.</p>
+                    <p>Chúc bạn có những trải nghiệm tuyệt vời!</p>
+                    <br>
+                    <p>Trân trọng,<br>Đội ngũ %s</p>
+                </body>
+                </html>
+                """, username, companyName, companyName);
+
+            helper.setText(content, true);
+            javaMailSender.send(message);
+
+
+            return true;
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Gửi email thông báo chung tới người dùng.
+     * @param toEmail Email người nhận
+     * @param subject Tiêu đề email
+     * @param content Nội dung email
+     * @return true nếu gửi thành công, false nếu lỗi
+     */
+    @Override
+    public boolean sendNotificationEmail(String toEmail, String subject, String content) {
+        try {
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(content, true);
+
+            javaMailSender.send(message);
+
+
+            return true;
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+}
