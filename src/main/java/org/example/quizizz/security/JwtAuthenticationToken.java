@@ -12,12 +12,12 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
     public JwtAuthenticationToken(Long userId, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.userId = userId;
-        setAuthenticated(true); // Đánh dấu là đã xác thực
+        setAuthenticated(true);
     }
 
     @Override
     public Object getCredentials() {
-        return null; // Không có credentials với JWT
+        return null;
     }
 
     @Override

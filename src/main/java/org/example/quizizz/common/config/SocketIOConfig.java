@@ -22,7 +22,7 @@ public class SocketIOConfig {
         com.corundumstudio.socketio.Configuration config = new com.corundumstudio.socketio.Configuration();
         config.setHostname("0.0.0.0"); // Listen on all interfaces
         config.setPort(port);
-        config.setOrigin("http://localhost:5173"); // Frontend URL
+        config.setOrigin("http://localhost:5173");
 
         // Allow all transports
         config.setTransports(com.corundumstudio.socketio.Transport.WEBSOCKET, com.corundumstudio.socketio.Transport.POLLING);

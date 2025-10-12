@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 public class NextQuestionRequest {
     private Long roomId;
 
-    // ✅ FIX: Handle both Integer and Long from JavaScript
     @JsonSetter("roomId")
     public void setRoomId(Object roomId) {
         if (roomId instanceof Integer) {

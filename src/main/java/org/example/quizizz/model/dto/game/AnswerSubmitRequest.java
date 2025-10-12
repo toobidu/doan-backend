@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class AnswerSubmitRequest {
     private Long questionId;
     private Long answerId;
-    private Long timeTaken; // in milliseconds
+    private Long timeTaken;
 }

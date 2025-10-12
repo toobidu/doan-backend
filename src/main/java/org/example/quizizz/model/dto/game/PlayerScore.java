@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class PlayerScore {
     private Long userId;
     private String userName;
+    private String avatar;
     private Integer score;
     private Long timeTaken;
 }

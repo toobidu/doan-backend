@@ -32,6 +32,17 @@ public class AnswerServiceImplement implements IAnswerService {
         return answerMapper.toResponse(savedAnswer);
     }
 
+    @Override
+    public List<AnswerResponse> createBulkAnswers(CreateBulkAnswersRequest request) {
+        List<Answer> answers = request.getAnswers().stream()
+                .map(answerMapper::toEntity)
+                .collect(Collectors.toList());
+        List<Answer> savedAnswers = answerRepository.saveAll(answers);
+        return savedAnswers.stream()
+                .map(answerMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
     /**
      * Cập nhật câu trả lời
      * @param id

@@ -30,6 +30,14 @@ public class AnswerController {
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
     }
 
+    @Operation(summary = "Tạo nhiều đáp án", description = "Tạo nhiều đáp án cùng lúc")
+    @PostMapping("/bulk")
+    @PreAuthorize("hasAuthority('question:manage')")
+    public ResponseEntity<ApiResponse<List<AnswerResponse>>> createBulkAnswers(@Valid @RequestBody CreateBulkAnswersRequest request) {
+        List<AnswerResponse> responses = answerService.createBulkAnswers(request);
+        return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, responses));
+    }
+
     @Operation(summary = "Cập nhật đáp án", description = "Cập nhật thông tin đáp án theo ID")
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('question:manage')")

@@ -19,13 +19,13 @@ public class EventRegistrar {
         // Debug and test events
         server.addEventListener("ping", Object.class,
                 (client, data, ackSender) -> {
-                    log.info("🏓 Received ping from client: {}", client.getSessionId());
+                    log.info("Received ping from client: {}", client.getSessionId());
                     ackSender.sendAckData("pong", System.currentTimeMillis());
                 });
 
         server.addEventListener("test-connection", Object.class,
                 (client, data, ackSender) -> {
-                    log.info("🧪 Received test-connection from client: {}", client.getSessionId());
+                    log.info("Received test-connection from client: {}", client.getSessionId());
                     client.sendEvent("test-response", "Backend received your test");
                 });
 

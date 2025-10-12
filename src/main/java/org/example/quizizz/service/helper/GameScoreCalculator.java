@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class GameScoreCalculator {
 
-    private static final int BASE_SCORE = 100;
-    private static final int TIME_BONUS_MAX = 50;
+    private static final int BASE_SCORE = 10;
+    private static final int TIME_BONUS_MAX = 5;
 
     /**
      * Tính điểm dựa trên độ chính xác và thời gian trả lời

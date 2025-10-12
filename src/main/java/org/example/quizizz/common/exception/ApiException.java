@@ -1,14 +1,16 @@
 package org.example.quizizz.common.exception;
 
+import lombok.Getter;
 import org.example.quizizz.common.constants.MessageCode;
 
+@Getter
 public class ApiException extends RuntimeException {
     private final int status;
     private final MessageCode messageCode;
 
     public ApiException(MessageCode messageCode) {
         super(messageCode.getMessage());
-        this.status = 400; // Default status
+        this.status = 400;
         this.messageCode = messageCode;
     }
 
@@ -24,11 +26,4 @@ public class ApiException extends RuntimeException {
         this.messageCode = messageCode;
     }
 
-    public int getStatus() {
-        return status;
-    }
-
-    public MessageCode getMessageCode() {
-        return messageCode;
-    }
 }

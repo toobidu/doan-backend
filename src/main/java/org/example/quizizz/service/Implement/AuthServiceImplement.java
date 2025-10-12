@@ -20,6 +20,7 @@ import org.example.quizizz.service.Interface.IEmailService;
 import org.example.quizizz.service.Interface.IRedisService;
 import org.example.quizizz.util.PasswordGenerator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -45,6 +47,7 @@ public class AuthServiceImplement implements IAuthService {
     private final IEmailService emailService;
     private final PasswordGenerator passwordGenerator;
     private final JwtConfig jwtConfig;
+    private final PlayerProfileService playerProfileService;
 
     @Override
     public RegisterResponse register(RegisterRequest request) {
@@ -73,6 +76,14 @@ public class AuthServiceImplement implements IAuthService {
 
         // Lưu quyền vào Redis
         refreshUserPermissionsInRedis(savedUser.getId());
+
+        // NEW: Khởi tạo player profile cho user mới
+        try {
+            playerProfileService.initializeProfile(savedUser.getId(), 18); // Default age 18
+            log.info("Initialized player profile for new user {}", savedUser.getId());
+        } catch (Exception e) {
+            log.error("Error initializing player profile: {}", e.getMessage());
+        }
 
         return userMapper.toRegisterResponse(savedUser);
     }

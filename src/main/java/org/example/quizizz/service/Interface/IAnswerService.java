@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface IAnswerService {
     AnswerResponse createAnswer(CreateAnswerRequest request);
+    List<AnswerResponse> createBulkAnswers(CreateBulkAnswersRequest request);
     AnswerResponse updateAnswer(Long id, UpdateAnswerRequest request);
     void deleteAnswer(Long id);
     AnswerResponse getAnswerById(Long id);

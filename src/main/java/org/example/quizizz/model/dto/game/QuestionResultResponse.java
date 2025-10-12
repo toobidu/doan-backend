@@ -12,4 +12,6 @@ public class QuestionResultResponse {
     private Integer score;
     private Long timeTaken;
     private Long correctAnswerId;
+    private Integer streak;
+    private Double streakMultiplier;
 }

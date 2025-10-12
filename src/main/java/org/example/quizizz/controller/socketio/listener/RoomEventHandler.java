@@ -81,20 +81,12 @@ public class RoomEventHandler {
             try {
                 Long userId = sessionManager.getUserId(client.getSessionId());
                 if (userId == null) {
-                    log.warn("❌ Join room failed: User not authenticated");
                     client.sendEvent("join-room-error", Map.of("message", "User not authenticated"));
                     return;
                 }
-                
-                log.info("🔑 User {} attempting to join room with code: {}", userId, data.getRoomCode());
 
                 // Join room thông qua service
                 RoomResponse room = roomService.getRoomByCode(data.getRoomCode());
-
-                // ✅ DEBUG: Log room info trước khi join
-                log.info("📊 Room info: id={}, maxPlayers={}, currentPlayers={}",
-                    room.getId(), room.getMaxPlayers(), room.getCurrentPlayers());
-
                 roomService.joinRoomById(room.getId(), userId);
                 
                 // Join socket room
@@ -106,18 +98,6 @@ public class RoomEventHandler {
                 RoomPlayerResponse newPlayer = players.stream()
                     .filter(p -> p.getUserId().equals(userId))
                     .findFirst().orElse(null);
-                
-                // ✅ DEBUG: Log player data để kiểm tra
-                if (newPlayer != null) {
-                    log.info("👤 New player data: id={}, userId={}, username={}, isHost={}",
-                        newPlayer.getId(), newPlayer.getUserId(), newPlayer.getUsername(), newPlayer.getIsHost());
-                } else {
-                    log.error("❌ newPlayer is null for userId: {}", userId);
-                }
-
-                // ✅ DEBUG: Log all players
-                log.info("👥 All players in room {}: {}", room.getId(),
-                    players.stream().map(p -> p.getUsername()).toList());
 
                 // Gửi thông báo đến tất cả clients trong phòng
                 server.getRoomOperations("room-" + data.getRoomCode())
@@ -135,20 +115,15 @@ public class RoomEventHandler {
                         "players", players
                     ));
                 
-                // ✅ FIX: Gửi event đúng tên 'join-room-success' thay vì 'room-joined-success'
                 client.sendEvent("join-room-success", Map.of(
                     "success", true,
                     "room", room,
                     "players", players,
                     "timestamp", System.currentTimeMillis()
                 ));
-                
-                log.info("✅ User {} joined room {} successfully. Total players: {}", userId, data.getRoomCode(), players.size());
 
             } catch (Exception e) {
-                log.error("❌ Error joining room: {}", e.getMessage(), e);
 
-                // ✅ FIX: Send proper error message
                 String errorMessage = e.getMessage();
                 if (errorMessage == null || errorMessage.isEmpty()) {
                     errorMessage = "Failed to join room";

@@ -18,13 +18,13 @@ public class SocketIOServerRunner implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-            log.info("🚀 Starting Socket.IO server...");
+            log.info("Starting Socket.IO server...");
             socketIOServer.start();
             int port = socketIOServer.getConfiguration().getPort();
-            log.info("✅ Socket.IO server started successfully on port: {}", port);
-            log.info("🔗 Socket.IO server listening at: http://localhost:{}", port);
+            log.info("Socket.IO server started successfully on port: {}", port);
+            log.info("Socket.IO server listening at: http://localhost:{}", port);
         } catch (Exception e) {
-            log.error("❌ Failed to start Socket.IO server: {}", e.getMessage(), e);
+            log.error("Failed to start Socket.IO server: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to start Socket.IO server", e);
         }
     }

@@ -18,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class GameTimerService {
     
-    private final IRedisService redisService;
     private final SocketIOServer socketIOServer;
     private final ApplicationEventPublisher eventPublisher;
     

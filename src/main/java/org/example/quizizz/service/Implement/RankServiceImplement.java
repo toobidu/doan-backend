@@ -15,7 +15,6 @@ public class RankServiceImplement {
     
     private final RankRepository rankRepository;
     
-    // ✅ UPDATED: Thêm tham số totalTime
     public void updateRankAfterGame(Long userId, int scoreEarned, long timeTaken) {
         Rank rank = rankRepository.findByUserId(userId)
             .orElseGet(() -> {
@@ -29,14 +28,11 @@ public class RankServiceImplement {
         
         rank.setTotalScore(rank.getTotalScore() + scoreEarned);
         rank.setGamePlayed(rank.getGamePlayed() + 1);
-        rank.setTotalTime(rank.getTotalTime() + timeTaken); // ✅ Cộng dồn thời gian
+        rank.setTotalTime(rank.getTotalTime() + timeTaken);
         rankRepository.save(rank);
-        
-        log.info("✅ Updated rank for user {}: score={}, games={}, totalTime={}ms",
-            userId, rank.getTotalScore(), rank.getGamePlayed(), rank.getTotalTime());
     }
 
-    // ✅ Giữ lại method cũ để backward compatibility
+    // Giữ lại method cũ để backward compatibility
     public void updateRankAfterGame(Long userId, int scoreEarned) {
         updateRankAfterGame(userId, scoreEarned, 0L);
     }

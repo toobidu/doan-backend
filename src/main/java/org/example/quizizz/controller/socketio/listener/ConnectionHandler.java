@@ -33,7 +33,6 @@ public class ConnectionHandler {
             if (token != null && jwtUtil.validateToken(token)) {
                 Long userId = jwtUtil.getUserIdFromToken(token);
                 sessionManager.addUserSession(client.getSessionId().toString(), userId);
-                log.info("✅ User {} connected successfully with session {}", userId, client.getSessionId());
 
                 // Send welcome message to confirm connection
                 client.sendEvent("connection-confirmed", Map.of(
@@ -41,7 +40,6 @@ public class ConnectionHandler {
                         "sessionId", client.getSessionId().toString(),
                         "timestamp", System.currentTimeMillis()));
             } else {
-                log.warn("❌ Invalid token for session {}, disconnecting client", client.getSessionId());
                 client.disconnect();
             }
         };
@@ -53,14 +51,7 @@ public class ConnectionHandler {
             Long userId = sessionManager.getUserId(sessionId);
             Long roomId = sessionManager.getRoomId(sessionId);
 
-            // CRITICAL FIX: DO NOT auto-leave room on disconnect
-            // Disconnect can happen due to page reload, network issues, etc.
-            // Users should explicitly call "leave-room" event to leave
-            // This prevents rooms from being deleted when users reload page
-
             if (userId != null && roomId != null) {
-                // Only notify other players that user is temporarily disconnected
-                // DO NOT call roomService.leaveRoom() here
                 server.getRoomOperations("room-" + roomId)
                         .sendEvent("player-disconnected", Map.of(
                                 "userId", userId,

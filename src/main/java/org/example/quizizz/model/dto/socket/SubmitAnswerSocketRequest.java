@@ -12,7 +12,6 @@ public class SubmitAnswerSocketRequest {
     private String answerText;
     private Long timeTaken;
 
-    // ✅ FIX: Handle both Integer and Long from JavaScript
     @JsonSetter("roomId")
     public void setRoomId(Object roomId) {
         if (roomId instanceof Integer) {
