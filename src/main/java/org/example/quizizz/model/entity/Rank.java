@@ -29,6 +29,9 @@ public class Rank implements Serializable{
     @Column(name = "game_played", nullable = false)
     private Integer gamePlayed;
 
+    @Column(name = "total_time", nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private Long totalTime = 0L;
+
     @Column(name = "created_at")
     @CreationTimestamp
     private LocalDateTime createdAt;

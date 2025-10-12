@@ -143,12 +143,50 @@ public class GameEventHandler {
                 // Gửi đáp án và nhận kết quả
                 QuestionResultResponse result = gameService.submitAnswer(data.getRoomId(), userId, request);
                 
-                // Gửi kết quả về cho user
-                client.sendEvent("answer-submitted", Map.of(
-                    "result", result,
-                    "timestamp", System.currentTimeMillis()
-                ));
-                
+                // ✅ NEW: Kiểm tra xem player này đã hoàn thành tất cả câu hỏi chưa
+                NextQuestionResponse nextQuestion = gameService.getNextQuestionForPlayer(data.getRoomId(), userId);
+
+                if (nextQuestion != null) {
+                    // Còn câu hỏi tiếp theo - gửi cho player này
+                    client.sendEvent("answer-submitted", Map.of(
+                        "result", result,
+                        "nextQuestion", nextQuestion,
+                        "hasNextQuestion", true,
+                        "timestamp", System.currentTimeMillis()
+                    ));
+
+                    log.info("✅ User {} answered question {}, sending next question {}",
+                        userId, data.getQuestionId(), nextQuestion.getQuestionNumber());
+                } else {
+                    // Hết câu hỏi - player này đã hoàn thành
+                    client.sendEvent("answer-submitted", Map.of(
+                        "result", result,
+                        "hasNextQuestion", false,
+                        "completed", true,
+                        "timestamp", System.currentTimeMillis()
+                    ));
+
+                    log.info("🏁 User {} completed all questions in room {}", userId, data.getRoomId());
+
+                    // ✅ Kiểm tra xem TẤT CẢ players đã hoàn thành chưa
+                    boolean allCompleted = gameService.haveAllPlayersCompleted(data.getRoomId());
+
+                    if (allCompleted) {
+                        log.info("🎉 All players completed room {}, calculating final results...", data.getRoomId());
+
+                        // Tính toán kết quả cuối cùng
+                        GameOverResponse gameResult = gameService.endGame(data.getRoomId());
+
+                        Room room = roomRepository.findById(data.getRoomId()).orElseThrow();
+                        // Broadcast kết quả đến tất cả players
+                        server.getRoomOperations("room-" + room.getRoomCode())
+                            .sendEvent("game-finished", Map.of(
+                                "result", gameResult,
+                                "timestamp", System.currentTimeMillis()
+                            ));
+                    }
+                }
+
                 Room room = roomRepository.findById(data.getRoomId()).orElseThrow();
                 // Broadcast rằng user đã trả lời (không tiết lộ đáp án)
                 server.getRoomOperations("room-" + room.getRoomCode())
@@ -156,9 +194,9 @@ public class GameEventHandler {
                         "userId", userId,
                         "timestamp", System.currentTimeMillis()
                     ));
-                
+
             } catch (Exception e) {
-                log.error("Error submitting answer: {}", e.getMessage());
+                log.error("Error submitting answer: {}", e.getMessage(), e);
                 client.sendEvent("error", Map.of("message", "Failed to submit answer"));
             }
         });
@@ -250,6 +288,59 @@ public class GameEventHandler {
             } catch (Exception e) {
                 log.error("Error ending game: {}", e.getMessage());
                 client.sendEvent("error", Map.of("message", "Failed to end game"));
+            }
+        });
+
+        /*** ✅ NEW: Get current game state - cho phép client lấy trạng thái game hiện tại ***/
+        server.addEventListener("get-game-state", StartGameRequest.class, (client, data, ackRequest) -> {
+            try {
+                Long userId = sessionManager.getUserId(client.getSessionId());
+                if (userId == null) {
+                    log.error("❌ Get game state failed: User not authenticated");
+                    if (ackRequest.isAckRequested()) {
+                        ackRequest.sendAckData(Map.of(
+                            "success", false,
+                            "message", "User not authenticated"
+                        ));
+                    }
+                    return;
+                }
+
+                Long roomId = data.getRoomId();
+                log.info("📦 User {} requesting game state for room {}", userId, roomId);
+
+                // Lấy câu hỏi hiện tại
+                NextQuestionResponse currentQuestion = gameService.getCurrentQuestion(roomId);
+
+                if (currentQuestion != null) {
+                    log.info("✅ Sending current question to user {}: {}", userId, currentQuestion.getQuestionText());
+
+                    if (ackRequest.isAckRequested()) {
+                        ackRequest.sendAckData(Map.of(
+                            "success", true,
+                            "currentQuestion", currentQuestion,
+                            "timestamp", System.currentTimeMillis()
+                        ));
+                    }
+                } else {
+                    log.warn("⚠️ No current question found for room {}", roomId);
+
+                    if (ackRequest.isAckRequested()) {
+                        ackRequest.sendAckData(Map.of(
+                            "success", false,
+                            "message", "No current question available"
+                        ));
+                    }
+                }
+
+            } catch (Exception e) {
+                log.error("❌ Error getting game state: {}", e.getMessage(), e);
+                if (ackRequest.isAckRequested()) {
+                    ackRequest.sendAckData(Map.of(
+                        "success", false,
+                        "message", "Failed to get game state: " + e.getMessage()
+                    ));
+                }
             }
         });
     }

@@ -43,6 +43,14 @@ public class GameServiceImplement implements IGameService {
     private final RankServiceImplement rankService;
     private final ApplicationContext applicationContext;
 
+    // ✅ FIX: Inject SocketIOServer to broadcast events
+    private com.corundumstudio.socketio.SocketIOServer socketIOServer;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setSocketIOServer(com.corundumstudio.socketio.SocketIOServer socketIOServer) {
+        this.socketIOServer = socketIOServer;
+    }
+
     @Override
     @Transactional
     public void startGameSession(Long roomId) {
@@ -95,9 +103,9 @@ public class GameServiceImplement implements IGameService {
             throw new RuntimeException("Game not active");
         }
 
-        int currentIndex = (Integer) sessionData.get("currentQuestionIndex");
-        int totalQuestions = (Integer) sessionData.get("totalQuestions");
-        Long gameSessionId = (Long) sessionData.get("gameSessionId");
+        int currentIndex = ((Number) sessionData.get("currentQuestionIndex")).intValue();
+        int totalQuestions = ((Number) sessionData.get("totalQuestions")).intValue();
+        Long gameSessionId = ((Number) sessionData.get("gameSessionId")).longValue();
 
         if (currentIndex >= totalQuestions) {
             // Game over
@@ -128,6 +136,61 @@ public class GameServiceImplement implements IGameService {
 
         // Cập nhật current index
         redisService.updateGameSession(gameId, "currentQuestionIndex", currentIndex + 1);
+
+        return response;
+    }
+
+    @Override
+    public NextQuestionResponse getCurrentQuestion(Long roomId) {
+        String gameId = "game:" + roomId;
+        Map<String, Object> sessionData = redisService.getGameSession(gameId);
+
+        if (sessionData == null || !GameStatus.IN_PROGRESS.name().equals(sessionData.get("status"))) {
+            log.warn("⚠️ Game not active for room {}", roomId);
+            return null;
+        }
+
+        // ✅ FIX: currentQuestionIndex is the NEXT question to show, so current is index - 1
+        int currentIndex = ((Number) sessionData.get("currentQuestionIndex")).intValue();
+        int totalQuestions = ((Number) sessionData.get("totalQuestions")).intValue();
+        Long gameSessionId = ((Number) sessionData.get("gameSessionId")).longValue();
+
+        // ✅ FIX: If no question has been shown yet, return null
+        if (currentIndex <= 0) {
+            log.warn("⚠️ No question shown yet for room {}", roomId);
+            return null;
+        }
+
+        // ✅ FIX: Current question is at index - 1 (since index was already incremented)
+        int actualQuestionIndex = currentIndex - 1;
+
+        if (actualQuestionIndex < 0 || actualQuestionIndex >= totalQuestions) {
+            log.warn("⚠️ No current question available for room {}, index: {}", roomId, actualQuestionIndex);
+            return null;
+        }
+
+        // Lấy thông tin phòng và câu hỏi hiện tại
+        Room room = roomRepository.findById(roomId).orElseThrow();
+        List<GameQuestion> gameQuestions = gameQuestionRepository
+                .findByGameSessionIdOrderByQuestionOrder(gameSessionId);
+        GameQuestion currentGameQuestion = gameQuestions.get(actualQuestionIndex);
+        Question question = questionRepository.findById(currentGameQuestion.getQuestionId()).orElseThrow();
+
+        // Lấy đáp án
+        List<Answer> answers = answerRepository.findByQuestionId(question.getId());
+        List<AnswerOption> answerOptions = answers.stream()
+                .map(a -> new AnswerOption(a.getId(), a.getAnswerText()))
+                .collect(Collectors.toList());
+
+        NextQuestionResponse response = new NextQuestionResponse();
+        response.setQuestionId(question.getId());
+        response.setQuestionText(question.getQuestionText());
+        response.setAnswers(answerOptions);
+        response.setTimeLimit(room.getCountdownTime());
+        response.setQuestionNumber(actualQuestionIndex + 1);
+        response.setTotalQuestions(totalQuestions);
+
+        log.info("✅ Returned current question {} for room {}", actualQuestionIndex + 1, roomId);
 
         return response;
     }
@@ -179,7 +242,7 @@ public class GameServiceImplement implements IGameService {
             throw new RuntimeException("Game session not found");
         }
 
-        Long gameSessionId = (Long) sessionData.get("gameSessionId");
+        Long gameSessionId = ((Number) sessionData.get("gameSessionId")).longValue();
 
         // Cập nhật game session
         GameSession gameSession = gameSessionRepository.findById(gameSessionId).orElseThrow();
@@ -246,7 +309,7 @@ public class GameServiceImplement implements IGameService {
                 .collect(Collectors.toList());
 
         // Lưu game history và cập nhật rank
-        int totalQuestions = (Integer) sessionData.get("totalQuestions");
+        int totalQuestions = ((Number) sessionData.get("totalQuestions")).intValue();
         for (PlayerRanking ranking : rankings) {
             GameHistory history = new GameHistory();
             history.setGameSessionId(gameSessionId);
@@ -260,7 +323,12 @@ public class GameServiceImplement implements IGameService {
             history.setTotalQuestions(totalQuestions);
             gameHistoryRepository.save(history);
             
-            rankService.updateRankAfterGame(ranking.getUserId(), ranking.getTotalScore().intValue());
+            // ✅ UPDATED: Truyền cả totalTime vào updateRankAfterGame
+            rankService.updateRankAfterGame(
+                ranking.getUserId(),
+                ranking.getTotalScore().intValue(),
+                ranking.getTotalTime() // Thời gian tổng của game này
+            );
         }
 
         // Cập nhật Redis
@@ -303,18 +371,41 @@ public class GameServiceImplement implements IGameService {
     public void handleTimerFinished(GameTimerEvent event) {
         try {
             Long roomId = event.getRoomId();
+            log.info("⏰ Timer finished for room {}, getting next question...", roomId);
+
             NextQuestionResponse nextQuestion = getNextQuestion(roomId);
-            
+            Room room = roomRepository.findById(roomId).orElseThrow();
+
             if (nextQuestion == null) {
                 // Game finished
-                endGame(roomId);
+                log.info("🏁 No more questions, ending game for room {}", roomId);
+                GameOverResponse gameResult = endGame(roomId);
+
+                // ✅ FIX: Use room code, not room ID for socket room
+                socketIOServer.getRoomOperations("room-" + room.getRoomCode())
+                    .sendEvent("game-finished", Map.of(
+                        "result", gameResult,
+                        "timestamp", System.currentTimeMillis()
+                    ));
             } else {
+                // Broadcast next question to all players
+                log.info("📤 Broadcasting next question {} to room {}", nextQuestion.getQuestionNumber(), roomId);
+
+                // ✅ FIX: Use room code, not room ID for socket room
+                socketIOServer.getRoomOperations("room-" + room.getRoomCode())
+                    .sendEvent("next-question", Map.of(
+                        "question", nextQuestion,
+                        "timestamp", System.currentTimeMillis()
+                    ));
+
                 // Start timer for next question
                 GameTimerService gameTimerService = applicationContext.getBean(GameTimerService.class);
                 gameTimerService.startGameTimer(roomId, nextQuestion.getTimeLimit());
+
+                log.info("✅ Successfully sent next question and started timer for room {}", roomId);
             }
         } catch (Exception e) {
-            log.error("Error handling timer event: {}", e.getMessage());
+            log.error("❌ Error handling timer event: {}", e.getMessage(), e);
         }
     }
 
@@ -346,5 +437,109 @@ public class GameServiceImplement implements IGameService {
             }
         }
         throw new RuntimeException("Cannot resolve answerId from provided selection for question " + questionId);
+    }
+
+    @Override
+    public NextQuestionResponse getNextQuestionForPlayer(Long roomId, Long userId) {
+        try {
+            String gameId = "game:" + roomId;
+            Map<String, Object> sessionData = redisService.getGameSession(gameId);
+
+            if (sessionData == null || !GameStatus.IN_PROGRESS.name().equals(sessionData.get("status"))) {
+                log.warn("⚠️ Game not active for room {}", roomId);
+                return null;
+            }
+
+            int totalQuestions = ((Number) sessionData.get("totalQuestions")).intValue();
+            Long gameSessionId = ((Number) sessionData.get("gameSessionId")).longValue();
+
+            // Đếm số câu hỏi player này đã trả lời
+            List<UserAnswer> playerAnswers = userAnswerRepository.findByRoomIdAndUserId(roomId, userId);
+            int answeredCount = playerAnswers.size();
+
+            log.info("📊 Player {} has answered {}/{} questions in room {}",
+                userId, answeredCount, totalQuestions, roomId);
+
+            // Nếu đã trả lời hết -> return null
+            if (answeredCount >= totalQuestions) {
+                log.info("🏁 Player {} has completed all questions in room {}", userId, roomId);
+                return null;
+            }
+
+            // Lấy câu hỏi tiếp theo (index = số câu đã trả lời)
+            Room room = roomRepository.findById(roomId).orElseThrow();
+            List<GameQuestion> gameQuestions = gameQuestionRepository
+                    .findByGameSessionIdOrderByQuestionOrder(gameSessionId);
+
+            if (answeredCount >= gameQuestions.size()) {
+                return null;
+            }
+
+            GameQuestion nextGameQuestion = gameQuestions.get(answeredCount);
+            Question question = questionRepository.findById(nextGameQuestion.getQuestionId()).orElseThrow();
+
+            // Lấy đáp án
+            List<Answer> answers = answerRepository.findByQuestionId(question.getId());
+            List<AnswerOption> answerOptions = answers.stream()
+                    .map(a -> new AnswerOption(a.getId(), a.getAnswerText()))
+                    .collect(Collectors.toList());
+
+            NextQuestionResponse response = new NextQuestionResponse();
+            response.setQuestionId(question.getId());
+            response.setQuestionText(question.getQuestionText());
+            response.setAnswers(answerOptions);
+            response.setTimeLimit(room.getCountdownTime());
+            response.setQuestionNumber(answeredCount + 1);
+            response.setTotalQuestions(totalQuestions);
+
+            log.info("✅ Returning question {} for player {} in room {}",
+                answeredCount + 1, userId, roomId);
+
+            return response;
+        } catch (Exception e) {
+            log.error("❌ Error getting next question for player: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    @Override
+    public boolean haveAllPlayersCompleted(Long roomId) {
+        try {
+            String gameId = "game:" + roomId;
+            Map<String, Object> sessionData = redisService.getGameSession(gameId);
+
+            if (sessionData == null) {
+                log.warn("⚠️ No game session for room {}", roomId);
+                return false;
+            }
+
+            int totalQuestions = ((Number) sessionData.get("totalQuestions")).intValue();
+
+            // Lấy danh sách players trong room
+            List<RoomPlayers> roomPlayers = roomPlayerRepository.findByRoomId(roomId);
+            int totalPlayers = roomPlayers.size();
+
+            if (totalPlayers == 0) {
+                log.warn("⚠️ No players in room {}", roomId);
+                return false;
+            }
+
+            // Kiểm tra từng player đã hoàn thành chưa
+            int completedPlayers = 0;
+            for (RoomPlayers player : roomPlayers) {
+                List<UserAnswer> playerAnswers = userAnswerRepository.findByRoomIdAndUserId(roomId, player.getUserId());
+                if (playerAnswers.size() >= totalQuestions) {
+                    completedPlayers++;
+                }
+            }
+
+            log.info("📊 Room {}: {}/{} players completed all questions",
+                roomId, completedPlayers, totalPlayers);
+
+            return completedPlayers >= totalPlayers;
+        } catch (Exception e) {
+            log.error("❌ Error checking if all players completed: {}", e.getMessage(), e);
+            return false;
+        }
     }
 }
