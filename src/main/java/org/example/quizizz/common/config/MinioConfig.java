@@ -19,6 +19,10 @@ public class MinioConfig {
     @Value("${minio.secret-key}")
     private String secretKey;
 
+    /**
+     * Cấu hình MinIO client.
+     * @return MinIO client được cấu hình đầy đủ
+     */
     @Bean
     public MinioClient minioClient() {
         try {

@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/topics")
 @RequiredArgsConstructor
-@Tag(name = "Topic", description = "APIs liên quan đến chủ đề")
+@Tag(name = "5. Topic", description = "APIs liên quan đến chủ đề")
 public class TopicController {
     private final ITopicService topicService;
 

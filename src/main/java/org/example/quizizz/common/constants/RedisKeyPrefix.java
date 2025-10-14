@@ -1,5 +1,8 @@
 package org.example.quizizz.common.constants;
 
+import lombok.Getter;
+
+@Getter
 public enum RedisKeyPrefix {
     USER_PERMISSIONS("user:%s:permissions"),
     GAME_SESSION("game:%s:session"),
@@ -20,7 +23,4 @@ public enum RedisKeyPrefix {
         return String.format(pattern, args);
     }
 
-    public String getPattern() {
-        return pattern;
-    }
 }

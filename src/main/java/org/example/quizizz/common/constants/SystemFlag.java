@@ -1,5 +1,8 @@
 package org.example.quizizz.common.constants;
 
+import lombok.Getter;
+
+@Getter
 public enum SystemFlag {
     NORMAL("0"),
     SYSTEM("1");
@@ -10,7 +13,4 @@ public enum SystemFlag {
         this.value = value;
     }
 
-    public String getValue() {
-        return value;
-    }
 }

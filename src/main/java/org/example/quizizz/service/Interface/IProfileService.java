@@ -12,4 +12,5 @@ public interface IProfileService {
     String getAvatarUrl(Long userId) throws Exception;
     List<UserSearchResponse> searchUsers(String keyword);
     PublicProfileResponse getPublicProfile(String username) throws Exception;
+    ProfileStatsResponse getProfileStats(Long userId);
 }

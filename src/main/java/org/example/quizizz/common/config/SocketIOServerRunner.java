@@ -10,11 +10,15 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-@Order(100) // Run after other initializations
+@Order(100)
 public class SocketIOServerRunner implements CommandLineRunner {
 
     private final SocketIOServer socketIOServer;
 
+    /**
+     * Starts the Socket.IO server when the application starts.
+     * Logs the server status and port information.
+     */
     @Override
     public void run(String... args) {
         try {

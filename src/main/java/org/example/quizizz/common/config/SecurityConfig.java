@@ -22,6 +22,12 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    /**
+     * Cấu hình Spring Security.
+     * @param http HttpSecurity
+     * @return SecurityFilterChain
+     * @throws Exception Exception
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         String[] swaggerPaths = {

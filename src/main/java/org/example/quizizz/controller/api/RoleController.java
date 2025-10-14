@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/roles")
 @RequiredArgsConstructor
-@Tag(name = "Role", description = "APIs liên quan đến vai trò")
+@Tag(name = "2. Role", description = "APIs liên quan đến vai trò")
 public class RoleController {
 
     private final IRoleService roleService;

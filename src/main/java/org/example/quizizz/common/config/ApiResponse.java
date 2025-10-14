@@ -5,6 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Custome API response structure
+ * @param <T>
+ */
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

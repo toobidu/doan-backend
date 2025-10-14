@@ -1,5 +1,6 @@
 package org.example.quizizz.controller.api;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/health")
 @CrossOrigin(origins = "*")
+@Tag(name = "8. Health", description = "Health check APIs")
 public class HealthController {
 
     @GetMapping

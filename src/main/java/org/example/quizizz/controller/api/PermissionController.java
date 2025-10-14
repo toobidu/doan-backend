@@ -20,7 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/permissions")
 @RequiredArgsConstructor
-@Tag(name = "Permission", description = "APIs liên quan đến quyền")
+@Tag(name = "4. Permission", description = "APIs liên quan đến quyền")
 public class PermissionController {
 
     private final IPermissionService permissionService;

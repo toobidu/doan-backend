@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/role-permissions")
 @RequiredArgsConstructor
-@Tag(name = "RolePermission", description = "APIs liên quan đến gán quyền cho vai trò")
+@Tag(name = "3. RolePermission", description = "APIs liên quan đến gán quyền cho vai trò")
 public class RolePermissionController {
 
     private final IRolePermissionService rolePermissionService;

@@ -3,6 +3,9 @@ package org.example.quizizz.common.event;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
+/**
+ * Sự kiện liên quan đến các room.
+ */
 @Getter
 public class RoomEvent extends ApplicationEvent {
     

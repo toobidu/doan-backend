@@ -111,7 +111,9 @@ public class RoomServiceImplement implements IRoomService {
             return mapToRoomResponse(room);
         }
 
+        // Điều này tránh lỗi permission denied khi join phòng private lần đầu
         if (roomPlayerRepository.isUserKicked(room.getId(), userId)) {
+            log.warn("User {} is kicked from room {}", userId, room.getId());
             throw new ApiException(MessageCode.ROOM_PERMISSION_DENIED);
         }
 
@@ -131,6 +133,8 @@ public class RoomServiceImplement implements IRoomService {
         RoomResponse roomResponse = mapToRoomResponse(room);
         broadcastRoomUpdated(roomResponse);
         eventPublisher.publishEvent(new RoomEvent(this, RoomEvent.Type.ROOM_UPDATED, roomResponse));
+
+        log.info("User {} successfully joined room {}", userId, room.getId());
         return roomResponse;
     }
 

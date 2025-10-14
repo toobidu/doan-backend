@@ -6,6 +6,9 @@ import org.example.quizizz.controller.socketio.listener.RoomListEventHandler;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+/**
+ * Lắng nghe các sự kiện liên quan đến phòng
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j

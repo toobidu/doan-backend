@@ -11,6 +11,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+/**
+ * Xử lý kết nối và ngắt kết nối
+ * - Xác thực JWT khi kết nối
+ * - Quản lý phiên người dùng
+ * - Thông báo ngắt kết nối tạm thời
+ * - Giữ nguyên trạng thái phòng khi ngắt kết nối tạm thời
+ */
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -24,6 +31,7 @@ public class ConnectionHandler {
         server.addDisconnectListener(onDisconnect(server));
     }
 
+    // Xử lý sự kiện kết nối
     private ConnectListener onConnect() {
         return client -> {
             String token = client.getHandshakeData().getSingleUrlParam("token");
@@ -34,7 +42,7 @@ public class ConnectionHandler {
                 Long userId = jwtUtil.getUserIdFromToken(token);
                 sessionManager.addUserSession(client.getSessionId().toString(), userId);
 
-                // Send welcome message to confirm connection
+                // Gửi xác nhận kết nối thành công
                 client.sendEvent("connection-confirmed", Map.of(
                         "userId", userId,
                         "sessionId", client.getSessionId().toString(),
@@ -45,6 +53,7 @@ public class ConnectionHandler {
         };
     }
 
+    // Xử lý sự kiện ngắt kết nối
     private DisconnectListener onDisconnect(SocketIOServer server) {
         return client -> {
             String sessionId = client.getSessionId().toString();
@@ -59,7 +68,7 @@ public class ConnectionHandler {
                 log.info("User {} disconnected from room {} (temporary)", userId, roomId);
             }
 
-            // Clean up session but keep room membership intact
+            // Xóa phiên người dùng
             sessionManager.removeSession(sessionId);
         };
     }

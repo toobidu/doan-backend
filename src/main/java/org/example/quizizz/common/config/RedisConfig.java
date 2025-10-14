@@ -24,6 +24,10 @@ public class RedisConfig {
     @Value("${spring.data.redis.password:}")
     private String redisPassword;
 
+    /**
+     * Cấu hình RedisConnectionFactory để kết nối tới Redis server.
+     * @return RedisConnectionFactory được cấu hình đầy đủ
+     */
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisHost, redisPort);
@@ -36,6 +40,11 @@ public class RedisConfig {
         return factory;
     }
 
+    /**
+     * Cấu hình RedisTemplate để sử dụng trong Redis.
+     * @param connectionFactory RedisConnectionFactory được cấu hình đầy đủ
+     * @return RedisTemplate được cấu hình đầy đủ
+     */
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();

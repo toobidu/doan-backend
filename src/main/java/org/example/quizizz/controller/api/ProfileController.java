@@ -121,4 +121,17 @@ public class ProfileController {
             return ResponseEntity.badRequest().body(ApiResponse.error(404, MessageCode.USER_NOT_FOUND, "Không tìm thấy người dùng: " + username));
         }
     }
+
+    @GetMapping("/stats")
+    @PreAuthorize("hasAuthority('user:manage_profile')")
+    @Operation(summary = "Lấy thống kê profile", description = "Lấy thống kê chi tiết của người dùng hiện tại để hiển thị trên Dashboard và ProfileStats")
+    public ResponseEntity<ApiResponse<org.example.quizizz.model.dto.profile.ProfileStatsResponse>> getProfileStats(Authentication auth) {
+        try {
+            Long userId = Long.valueOf(auth.getName());
+            org.example.quizizz.model.dto.profile.ProfileStatsResponse stats = profileService.getProfileStats(userId);
+            return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, stats));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(ApiResponse.error(500, MessageCode.INTERNAL_SERVER_ERROR, "Lỗi lấy thống kê: " + e.getMessage()));
+        }
+    }
 }

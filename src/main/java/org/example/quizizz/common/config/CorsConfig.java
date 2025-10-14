@@ -21,10 +21,10 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000", // React dev server
-                "http://localhost:5173", // Vite dev server
-                "http://localhost:9000", // MinIO console
-                "https://your-production-domain.com" // Production domain
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "http://localhost:9000"
+//                "https://your-production-domain.com"
         ));
         config.setAllowedHeaders(Arrays.asList(
                 "Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"

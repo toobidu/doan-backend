@@ -8,9 +8,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+/**
+ * Class này chứa các handler cho các exception xảy ra trong quá trình chạy ứng dụng
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // Xử lý MethodArgumentNotValidException
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<?>> handleValidationException(MethodArgumentNotValidException ex) {
         String errorMessage = ex.getBindingResult()

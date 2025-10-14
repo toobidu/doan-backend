@@ -1,5 +1,8 @@
 package org.example.quizizz.common.constants;
 
+import lombok.Getter;
+
+@Getter
 public enum MessageCode {
     SUCCESS("200", "Operation successful"),
     VALIDATION_ERROR("400", "Validation error"),
@@ -78,11 +81,4 @@ public enum MessageCode {
         this.message = message;
     }
 
-    public String getCode() {
-        return code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
 }

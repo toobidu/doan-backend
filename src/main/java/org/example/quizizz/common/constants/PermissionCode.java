@@ -1,5 +1,8 @@
 package org.example.quizizz.common.constants;
 
+import lombok.Getter;
+
+@Getter
 public enum PermissionCode {
     USER_MANAGE("user:manage"),
     USER_MANAGE_PROFILE("user:manage_profile"),
@@ -23,7 +26,4 @@ public enum PermissionCode {
         this.code = code;
     }
 
-    public String getCode() {
-        return code;
-    }
 }
