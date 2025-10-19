@@ -1,11 +1,13 @@
 package org.example.quizizz.service.Implement;
 
 import org.example.quizizz.mapper.ProfileMapper;
+import org.example.quizizz.model.dto.game.GameHistoryResponse;
 import org.example.quizizz.model.dto.profile.*;
 import org.example.quizizz.model.entity.*;
 import org.example.quizizz.repository.*;
 import org.example.quizizz.service.Interface.IFileStorageService;
 import org.example.quizizz.service.Interface.IProfileService;
+import org.example.quizizz.service.helper.AchievementService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,9 @@ public class ProfileServiceImplement implements IProfileService {
     private final UserAnswerRepository userAnswerRepository;
     private final QuestionRepository questionRepository;
     private final TopicRepository topicRepository;
+    private final GameSessionRepository gameSessionRepository;
+    private final RoomRepository roomRepository;
+    private final AchievementService achievementService; // Thêm AchievementService
 
     /**
      * Lấy thông tin profile của người dùng với presigned URL cho avatar.
@@ -247,11 +252,21 @@ public class ProfileServiceImplement implements IProfileService {
         statsBuilder.bestTopic(bestTopic);
 
         // Tạo danh sách achievements
-        List<ProfileStatsResponse.AchievementDto> achievements = generateAchievements(userId, gameHistories);
+        List<ProfileStatsResponse.AchievementDto> achievements = achievementService.generateAchievements(userId, gameHistories);
         statsBuilder.achievements(achievements);
 
         log.info("Profile stats retrieved successfully for user {}", userId);
         return statsBuilder.build();
+    }
+
+    @Override
+    public List<GameHistoryResponse> getRecentGameHistory(Long userId) {
+        return List.of();
+    }
+
+    @Override
+    public PlayerStatsResponse getPlayerStats(Long userId) {
+        return null;
     }
 
     /**
@@ -335,45 +350,172 @@ public class ProfileServiceImplement implements IProfileService {
 
     /**
      * Tạo danh sách achievements dựa trên thống kê của user
+     * Sử dụng AchievementService để tính toán - dễ mở rộng và maintain
      */
-    private List<ProfileStatsResponse.AchievementDto> generateAchievements(Long userId, List<GameHistory> gameHistories) {
-        List<ProfileStatsResponse.AchievementDto> achievements = new ArrayList<>();
-
-        int totalGames = gameHistories.size();
-        int totalScore = gameHistories.stream().mapToInt(GameHistory::getScore).sum();
-
-        // Achievement 1: Người mới bắt đầu
-        achievements.add(ProfileStatsResponse.AchievementDto.builder()
-            .name("Người mới bắt đầu")
-            .description("Hoàn thành trò chơi đầu tiên")
-            .earned(totalGames >= 1)
-            .iconUrl(null)
-            .build());
-
-        // Achievement 2: Người chơi nhiệt tình
-        achievements.add(ProfileStatsResponse.AchievementDto.builder()
-            .name("Người chơi nhiệt tình")
-            .description("Chơi 10 trò chơi")
-            .earned(totalGames >= 10)
-            .iconUrl(null)
-            .build());
-
-        // Achievement 3: Cao thủ
-        achievements.add(ProfileStatsResponse.AchievementDto.builder()
-            .name("Cao thủ")
-            .description("Đạt 1000 điểm tổng")
-            .earned(totalScore >= 1000)
-            .iconUrl(null)
-            .build());
-
-        // Achievement 4: Huyền thoại
-        achievements.add(ProfileStatsResponse.AchievementDto.builder()
-            .name("Huyền thoại")
-            .description("Chơi 50 trò chơi")
-            .earned(totalGames >= 50)
-            .iconUrl(null)
-            .build());
-
-        return achievements;
-    }
+//    private List<ProfileStatsResponse.AchievementDto> generateAchievements(Long userId, List<GameHistory> gameHistories) {
+//        // Sử dụng AchievementService đã được tách riêng
+//        return achievementService.generateAchievements(userId, gameHistories);
+//    }
+//
+//    /**
+//     * Lấy lịch sử 5 game gần nhất của người dùng
+//     */
+//    @Override
+//    public List<GameHistoryResponse> getRecentGameHistory(Long userId) {
+//        log.info("Getting recent game history for user {}", userId);
+//
+//        List<GameHistory> gameHistories = gameHistoryRepository.findTop5ByUserIdOrderByCreatedAtDesc(userId);
+//
+//        return gameHistories.stream().map(gh -> {
+//            GameHistoryResponse response = new GameHistoryResponse();
+//            response.setId(gh.getId());
+//            response.setScore(gh.getScore());
+//            response.setCorrectAnswers(gh.getCorrectAnswers());
+//            response.setTotalQuestions(gh.getTotalQuestions());
+//            response.setPlayedAt(gh.getCreatedAt());
+//
+//            // Get game session info
+//            try {
+//                GameSession gameSession = gameSessionRepository.findById(gh.getGameSessionId()).orElse(null);
+//                if (gameSession != null) {
+//                    // Get room info
+//                    Room room = roomRepository.findById(gameSession.getRoomId()).orElse(null);
+//                    if (room != null) {
+//                        response.setRoomName(room.getRoomName());
+//
+//                        // Get topic name
+//                        Topic topic = topicRepository.findById(room.getTopicId()).orElse(null);
+//                        if (topic != null) {
+//                            response.setTopicName(topic.getName());
+//                        } else {
+//                            response.setTopicName("N/A");
+//                        }
+//                    } else {
+//                        response.setRoomName("N/A");
+//                        response.setTopicName("N/A");
+//                    }
+//
+//                    // Calculate total time
+//                    if (gameSession.getStartTime() != null && gameSession.getEndTime() != null) {
+//                        long duration = java.time.Duration.between(gameSession.getStartTime(), gameSession.getEndTime()).getSeconds();
+//                        response.setTotalTime(duration);
+//                    } else {
+//                        response.setTotalTime(0L);
+//                    }
+//                } else {
+//                    response.setRoomName("N/A");
+//                    response.setTopicName("N/A");
+//                    response.setTotalTime(0L);
+//                }
+//            } catch (Exception e) {
+//                log.error("Error getting game session info: {}", e.getMessage());
+//                response.setRoomName("N/A");
+//                response.setTopicName("N/A");
+//                response.setTotalTime(0L);
+//            }
+//
+//            // Calculate ranking (get all players in the same game session and rank them)
+//            try {
+//                List<GameHistory> allPlayersInSession = gameHistoryRepository.findByGameSessionId(gh.getGameSessionId());
+//                allPlayersInSession.sort((a, b) -> b.getScore().compareTo(a.getScore()));
+//
+//                int ranking = 1;
+//                for (GameHistory history : allPlayersInSession) {
+//                    if (history.getId().equals(gh.getId())) {
+//                        response.setRanking(ranking);
+//                        break;
+//                    }
+//                    ranking++;
+//                }
+//            } catch (Exception e) {
+//                log.error("Error calculating ranking: {}", e.getMessage());
+//                response.setRanking(0);
+//            }
+//
+//            return response;
+//        }).collect(Collectors.toList());
+//    }
+//
+//    /**
+//     * Lấy thống kê và thành tích của người chơi
+//     */
+//    @Override
+//    public PlayerStatsResponse getPlayerStats(Long userId) {
+//        log.info("Getting player stats for user {}", userId);
+//
+//        PlayerStatsResponse.PlayerStatsResponseBuilder statsBuilder = PlayerStatsResponse.builder();
+//
+//        // Get highest score
+//        Integer highestScore = gameHistoryRepository.findHighestScoreByUserId(userId);
+//        statsBuilder.highestScore(highestScore != null ? highestScore : 0);
+//
+//        // Get total games played
+//        Integer totalGames = gameHistoryRepository.countGamesByUserId(userId);
+//        statsBuilder.totalGamesPlayed(totalGames != null ? totalGames : 0);
+//
+//        // Get total correct answers
+//        Integer totalCorrectAnswers = gameHistoryRepository.sumCorrectAnswersByUserId(userId);
+//        statsBuilder.totalCorrectAnswers(totalCorrectAnswers != null ? totalCorrectAnswers : 0);
+//
+//        // Get average score
+//        Double averageScore = gameHistoryRepository.findAverageScoreByUserId(userId);
+//        statsBuilder.averageScore(averageScore != null ? averageScore : 0.0);
+//
+//        // Calculate accuracy rate
+//        List<GameHistory> gameHistories = gameHistoryRepository.findByUserId(userId);
+//        if (!gameHistories.isEmpty()) {
+//            int totalQuestions = gameHistories.stream().mapToInt(GameHistory::getTotalQuestions).sum();
+//            int totalCorrect = gameHistories.stream().mapToInt(GameHistory::getCorrectAnswers).sum();
+//            double accuracyRate = totalQuestions > 0 ? (totalCorrect * 100.0 / totalQuestions) : 0.0;
+//            statsBuilder.accuracyRate(accuracyRate);
+//        } else {
+//            statsBuilder.accuracyRate(0.0);
+//        }
+//
+//        // Get highest ranking (lowest rank number is best)
+//        Integer highestRanking = null;
+//        for (GameHistory gh : gameHistories) {
+//            try {
+//                List<GameHistory> allPlayersInSession = gameHistoryRepository.findByGameSessionId(gh.getGameSessionId());
+//                allPlayersInSession.sort((a, b) -> b.getScore().compareTo(a.getScore()));
+//
+//                int ranking = 1;
+//                for (GameHistory history : allPlayersInSession) {
+//                    if (history.getId().equals(gh.getId())) {
+//                        if (highestRanking == null || ranking < highestRanking) {
+//                            highestRanking = ranking;
+//                        }
+//                        break;
+//                    }
+//                    ranking++;
+//                }
+//            } catch (Exception e) {
+//                log.error("Error calculating highest ranking: {}", e.getMessage());
+//            }
+//        }
+//        statsBuilder.highestRanking(highestRanking != null ? highestRanking : 0);
+//
+//        // Get fastest time (shortest game duration)
+//        Long fastestTime = null;
+//        for (GameHistory gh : gameHistories) {
+//            try {
+//                GameSession gameSession = gameSessionRepository.findById(gh.getGameSessionId()).orElse(null);
+//                if (gameSession != null && gameSession.getStartTime() != null && gameSession.getEndTime() != null) {
+//                    long duration = java.time.Duration.between(gameSession.getStartTime(), gameSession.getEndTime()).getSeconds();
+//                    if (fastestTime == null || duration < fastestTime) {
+//                        fastestTime = duration;
+//                    }
+//                }
+//            } catch (Exception e) {
+//                log.error("Error calculating fastest time: {}", e.getMessage());
+//            }
+//        }
+//        statsBuilder.fastestTime(fastestTime != null ? fastestTime : 0L);
+//
+//        // Get best topic
+//        String bestTopic = findBestTopic(userId);
+//        statsBuilder.bestTopic(bestTopic);
+//
+//        return statsBuilder.build();
+//    }
 }

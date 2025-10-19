@@ -26,7 +26,12 @@ public enum MessageCode {
     AUTH_PASSWORD_MISMATCH("400", "New password and confirm password do not match"),
     AUTH_EMAIL_SEND_FAILED("500", "Failed to send email"),
     AUTH_PASSWORD_RESET_FAILED("500", "Password reset failed"),
-    
+    AUTH_EMAIL_NOT_VERIFIED("403", "Email not verified"),
+    AUTH_EMAIL_VERIFIED("200", "Email verified successfully"),
+    AUTH_EMAIL_SENT("200", "Email sent successfully"),
+    AUTH_TOKEN_EXPIRED("401", "Token has expired"),
+    AUTH_EMAIL_ALREADY_VERIFIED("400", "Email is already verified"),
+
     PERMISSION_GRANTED("200", "Permission granted successfully"),
     PERMISSION_REVOKED("200", "Permission revoked successfully"),
     ROLE_ASSIGNED("200", "Role assigned successfully"),

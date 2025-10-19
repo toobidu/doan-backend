@@ -20,6 +20,16 @@ spring:
         jdbc:
           time_zone: Asia/Ho_Chi_Minh
         format_sql: true
+
+  ai:
+    openai:
+      api-key: AIzaSyBzSjhORAYi38yjA60Ey64Xr20JiZdNIJo
+      chat:
+        base-url: https://generativelanguage.googleapis.com
+        completions-path: /v1beta/openai/chat/completions
+        options:
+          model: gemini-2.0-flash
+
   data:
     redis:
       host: localhost

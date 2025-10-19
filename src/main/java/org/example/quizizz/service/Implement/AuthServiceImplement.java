@@ -64,7 +64,16 @@ public class AuthServiceImplement implements IAuthService {
         User user = userMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setSystemFlag(SystemFlag.NORMAL.getValue());
+        user.setEmailVerified(false);
+        
+        // Lưu user trước để có ID
         User savedUser = userRepository.save(user);
+        
+        // Tạo verification token sau khi đã có userId
+        String verificationToken = jwtUtil.generateAccessToken(savedUser.getId(), "VERIFICATION", "NONE");
+        savedUser.setVerificationToken(verificationToken);
+        savedUser.setVerificationTokenExpiry(LocalDateTime.now().plusHours(24)); // Token hết hạn sau 24 giờ
+        savedUser = userRepository.save(savedUser);
 
         // Gán role PLAYER mặc định
         var playerRole = roleRepository.findByRoleName(RoleCode.PLAYER.name())
@@ -77,12 +86,28 @@ public class AuthServiceImplement implements IAuthService {
         // Lưu quyền vào Redis
         refreshUserPermissionsInRedis(savedUser.getId());
 
-        // NEW: Khởi tạo player profile cho user mới
+        // Khởi tạo player profile cho user mới
         try {
             playerProfileService.initializeProfile(savedUser.getId(), 18); // Default age 18
             log.info("Initialized player profile for new user {}", savedUser.getId());
         } catch (Exception e) {
             log.error("Error initializing player profile: {}", e.getMessage());
+        }
+
+        // Gửi email xác thực
+        try {
+            boolean emailSent = emailService.sendVerificationEmail(
+                savedUser.getEmail(),
+                savedUser.getUsername(),
+                savedUser.getVerificationToken()
+            );
+            if (!emailSent) {
+                log.error("Failed to send verification email to {}", savedUser.getEmail());
+            } else {
+                log.info("Verification email sent successfully to {}", savedUser.getEmail());
+            }
+        } catch (Exception e) {
+            log.error("Error sending verification email: {}", e.getMessage());
         }
 
         return userMapper.toRegisterResponse(savedUser);
@@ -96,7 +121,6 @@ public class AuthServiceImplement implements IAuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new ApiException(HttpStatus.UNAUTHORIZED.value(), MessageCode.AUTH_PASSWORD_INCORRECT, "Incorrect password");
         }
-
         user.setOnline(true);
         userRepository.save(user);
         redisService.setUserOnline(user.getId());
@@ -245,6 +269,42 @@ public class AuthServiceImplement implements IAuthService {
         } catch (Exception e) {
             throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     MessageCode.INTERNAL_ERROR, "Failed to logout all devices");
+        }
+    }
+
+    @Override
+    public boolean verifyEmail(String token) {
+        try {
+            // Tìm user theo verification token
+            User user = userRepository.findByVerificationToken(token)
+                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(),
+                            MessageCode.USER_NOT_FOUND, "Invalid verification token"));
+
+            // Kiểm tra token đã hết hạn chưa
+            if (user.getVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
+                throw new ApiException(HttpStatus.BAD_REQUEST.value(),
+                        MessageCode.AUTH_INVALID_TOKEN, "Verification token has expired");
+            }
+
+            // Kiểm tra email đã được xác thực chưa
+            if (user.getEmailVerified()) {
+                throw new ApiException(HttpStatus.BAD_REQUEST.value(),
+                        MessageCode.USER_ALREADY_EXISTS, "Email already verified");
+            }
+
+            // Cập nhật trạng thái xác thực
+            user.setEmailVerified(true);
+            user.setVerificationToken(null);
+            user.setVerificationTokenExpiry(null);
+            userRepository.save(user);
+
+            return true;
+
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    MessageCode.INTERNAL_ERROR, "Email verification failed");
         }
     }
 

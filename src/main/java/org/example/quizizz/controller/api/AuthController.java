@@ -65,4 +65,21 @@ public class AuthController {
         ChangePasswordResponse response = authService.changePassword(userId, request);
         return ResponseEntity.ok(ApiResponse.success(MessageCode.AUTH_PASSWORD_CHANGED, response));
     }
+
+    @Operation(summary = "Xác thực email", description = "Xác thực email sau khi đăng ký")
+    @GetMapping("/verify-email")
+    public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestParam("token") String token) {
+        boolean verified = authService.verifyEmail(token);
+        if (verified) {
+            return ResponseEntity.ok(ApiResponse.success(MessageCode.AUTH_EMAIL_VERIFIED, "Email verified successfully"));
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    @Operation(summary = "Quên mật khẩu", description = "Gửi mật khẩu mới qua email")
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<ResetPasswordResponse>> forgotPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        ResetPasswordResponse response = authService.resetPassword(request);
+        return ResponseEntity.ok(ApiResponse.success(MessageCode.AUTH_PASSWORD_RESET_SUCCESS, response));
+    }
 }

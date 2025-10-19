@@ -28,10 +28,12 @@ public class ProfileStatsResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class AchievementDto {
+        private String id;
         private String name;
         private String description;
+        private String tier;
+        private Integer points;
         private Boolean earned;
         private String iconUrl;
     }
 }
-

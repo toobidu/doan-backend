@@ -1,6 +1,7 @@
 package org.example.quizizz.service.Interface;
 
 import org.example.quizizz.model.dto.profile.*;
+import org.example.quizizz.model.dto.game.GameHistoryResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -13,4 +14,6 @@ public interface IProfileService {
     List<UserSearchResponse> searchUsers(String keyword);
     PublicProfileResponse getPublicProfile(String username) throws Exception;
     ProfileStatsResponse getProfileStats(Long userId);
+    List<GameHistoryResponse> getRecentGameHistory(Long userId);
+    PlayerStatsResponse getPlayerStats(Long userId);
 }

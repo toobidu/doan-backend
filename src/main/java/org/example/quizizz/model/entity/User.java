@@ -54,4 +54,13 @@ public class User extends BaseEntity {
 
     @Column(name = "deleted", nullable = false)
     private Boolean deleted = false;
+
+    @Column(name = "email_verified", nullable = false)
+    private Boolean emailVerified = false;
+
+    @Column(name = "verification_token")
+    private String verificationToken;
+
+    @Column(name = "verification_token_expiry")
+    private LocalDateTime verificationTokenExpiry;
 }

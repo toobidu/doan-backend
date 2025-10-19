@@ -2,6 +2,8 @@ package org.example.quizizz.controller.api;
 
 import org.example.quizizz.common.config.ApiResponse;
 import org.example.quizizz.common.constants.MessageCode;
+import org.example.quizizz.model.dto.game.GameHistoryResponse;
+import org.example.quizizz.model.dto.profile.PlayerStatsResponse;
 import org.example.quizizz.model.dto.profile.UpdateAvatarResponse;
 import org.example.quizizz.model.dto.profile.UpdateProfileRequest;
 import org.example.quizizz.model.dto.profile.UpdateProfileResponse;
@@ -16,6 +18,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/profile")
@@ -129,6 +133,32 @@ public class ProfileController {
         try {
             Long userId = Long.valueOf(auth.getName());
             org.example.quizizz.model.dto.profile.ProfileStatsResponse stats = profileService.getProfileStats(userId);
+            return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, stats));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(ApiResponse.error(500, MessageCode.INTERNAL_SERVER_ERROR, "Lỗi lấy thống kê: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/game-history")
+    @PreAuthorize("hasAuthority('user:manage_profile')")
+    @Operation(summary = "Lấy lịch sử chơi game", description = "Lấy lịch sử 5 game gần nhất của người dùng")
+    public ResponseEntity<ApiResponse<List<GameHistoryResponse>>> getGameHistory(Authentication auth) {
+        try {
+            Long userId = Long.valueOf(auth.getName());
+            java.util.List<GameHistoryResponse> history = profileService.getRecentGameHistory(userId);
+            return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, history));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(ApiResponse.error(500, MessageCode.INTERNAL_SERVER_ERROR, "Lỗi lấy lịch sử: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/player-stats")
+    @PreAuthorize("hasAuthority('user:manage_profile')")
+    @Operation(summary = "Lấy thống kê người chơi", description = "Lấy thống kê và thành tích chi tiết của người chơi")
+    public ResponseEntity<ApiResponse<PlayerStatsResponse>> getPlayerStats(Authentication auth) {
+        try {
+            Long userId = Long.valueOf(auth.getName());
+            PlayerStatsResponse stats = profileService.getPlayerStats(userId);
             return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, stats));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(ApiResponse.error(500, MessageCode.INTERNAL_SERVER_ERROR, "Lỗi lấy thống kê: " + e.getMessage()));

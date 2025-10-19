@@ -149,4 +149,48 @@ public class EmailServiceImplement implements IEmailService {
             return false;
         }
     }
+
+    /**
+     * Gửi email xác thực tài khoản khi đăng ký.
+     * @param toEmail Email người nhận
+     * @param username Tên người dùng
+     * @param verificationToken Token xác thực
+     * @return true nếu gửi thành công, false nếu lỗi
+     */
+    @Override
+    public boolean sendVerificationEmail(String toEmail, String username, String verificationToken) {
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Xác thực tài khoản - " + companyName);
+
+            // Tạo URL xác thực (frontend URL)
+            String verificationUrl = "http://localhost:5173/verify-email?token=" + verificationToken;
+
+            // Tạo context cho Thymeleaf template
+            Context context = new Context();
+            context.setVariable("username", username);
+            context.setVariable("verificationUrl", verificationUrl);
+            context.setVariable("companyName", companyName);
+            context.setVariable("supportUrl", supportUrl);
+            context.setVariable("year", LocalDateTime.now().getYear());
+
+            // Render HTML template
+            String htmlContent = emailTemplateEngine.process("email-verification", context);
+            helper.setText(htmlContent, true);
+
+            // Gửi email
+            javaMailSender.send(message);
+
+            return true;
+
+        } catch (MessagingException e) {
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

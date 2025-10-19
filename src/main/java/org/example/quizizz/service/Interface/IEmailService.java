@@ -34,4 +34,14 @@ public interface IEmailService {
      * @return true nếu gửi thành công, false nếu thất bại
      */
     boolean sendNotificationEmail(String toEmail, String subject, String content);
+
+    /**
+     * Gửi email xác thực tài khoản khi đăng ký
+     *
+     * @param toEmail email người nhận
+     * @param username tên người dùng
+     * @param verificationToken token xác thực
+     * @return true nếu gửi thành công, false nếu thất bại
+     */
+    boolean sendVerificationEmail(String toEmail, String username, String verificationToken);
 }

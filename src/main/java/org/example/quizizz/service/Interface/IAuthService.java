@@ -10,4 +10,5 @@ public interface IAuthService {
     ResetPasswordResponse resetPassword(ResetPasswordRequest request);
     ChangePasswordResponse changePassword(Long userId, ChangePasswordRequest request);
     void logoutAllDevices(Long userId);
+    boolean verifyEmail(String token);
 }
