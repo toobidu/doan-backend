@@ -33,4 +33,14 @@ public interface GameHistoryRepository extends JpaRepository<GameHistory, Long> 
 
     // Find all game histories by game session id
     List<GameHistory> findByGameSessionId(Long gameSessionId);
+
+    // Get leaderboard data by topic
+    @Query("SELECT gh.userId, AVG(gh.score) as avgScore, COUNT(gh) as gamesPlayed " +
+           "FROM GameHistory gh " +
+           "JOIN GameSession gs ON gh.gameSessionId = gs.id " +
+           "JOIN Room r ON gs.roomId = r.id " +
+           "WHERE r.topicId = :topicId " +
+           "GROUP BY gh.userId " +
+           "ORDER BY avgScore DESC")
+    List<Object[]> findLeaderboardByTopicId(@Param("topicId") Long topicId);
 }
