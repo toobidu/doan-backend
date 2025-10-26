@@ -209,8 +209,6 @@ public class RedisServiceImplement implements IRedisService {
 
     /**
      * Lấy trạng thái game
-     * @param gameId
-     * @return
      */
     @Override
     public GameStatus getGameStatus(String gameId) {
