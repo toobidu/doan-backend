@@ -44,7 +44,7 @@ public class GameServiceImplement implements IGameService {
     private final GameScoreCalculator scoreCalculator;
     private final RankServiceImplement rankService;
     private final ApplicationContext applicationContext;
-    private final PlayerProfileService playerProfileService;
+    private final PlayerProfileServiceImplement playerProfileService;
     private final UserRepository userRepository;
     private SocketIOServer socketIOServer;
 

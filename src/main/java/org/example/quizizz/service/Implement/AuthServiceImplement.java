@@ -47,7 +47,7 @@ public class AuthServiceImplement implements IAuthService {
     private final IEmailService emailService;
     private final PasswordGenerator passwordGenerator;
     private final JwtConfig jwtConfig;
-    private final PlayerProfileService playerProfileService;
+    private final PlayerProfileServiceImplement playerProfileService;
 
     @Override
     public RegisterResponse register(RegisterRequest request) {

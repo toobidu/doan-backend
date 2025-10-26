@@ -2,6 +2,7 @@ package org.example.quizizz.service.Implement;
 
 import org.example.quizizz.model.entity.*;
 import org.example.quizizz.repository.*;
+import org.example.quizizz.service.Interface.IPlayerProfileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class PlayerProfileService {
+public class PlayerProfileServiceImplement implements IPlayerProfileService {
 
     private final PlayerProfileRepository playerProfileRepository;
     private final GameHistoryRepository gameHistoryRepository;
