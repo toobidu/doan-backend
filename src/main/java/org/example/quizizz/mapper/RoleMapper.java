@@ -13,6 +13,7 @@ public interface RoleMapper {
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "roleName", expression = "java(request.getRoleName().trim().toUpperCase())")
     @Mapping(target = "description", source = "description")
+    @Mapping(target = "systemFlag", constant = "1")
     Role toEntity(CreateRoleRequest request);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE, ignoreByDefault = true)
