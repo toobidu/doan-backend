@@ -2,10 +2,12 @@ package org.example.quizizz.controller.api;
 
 import org.example.quizizz.common.config.ApiResponse;
 import org.example.quizizz.common.constants.MessageCode;
+import org.example.quizizz.model.dto.PageResponse;
 import org.example.quizizz.model.dto.topic.CreateTopicRequest;
 import org.example.quizizz.model.dto.topic.TopicResponse;
 import org.example.quizizz.model.dto.topic.UpdateTopicRequest;
 import org.example.quizizz.service.Interface.ITopicService;
+import org.example.quizizz.util.PageableUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -13,8 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/topics")
@@ -76,13 +76,22 @@ public class TopicController {
     }
 
     /**
-     * Lấy danh sách tất cả chủ đề.
-     * @return Danh sách chủ đề
+     * Lấy danh sách chủ đề với phân trang và tìm kiếm.
+     * @param keyword Từ khóa tìm kiếm (optional)
+     * @param page Số trang (bắt đầu từ 0)
+     * @param size Số lượng mỗi trang
+     * @param sort Sắp xếp (ví dụ: name,asc)
+     * @return Danh sách chủ đề phân trang
      */
-    @Operation(summary = "Lấy tất cả chủ đề", description = "Lấy danh sách tất cả chủ đề trong hệ thống")
+    @Operation(summary = "Lấy danh sách chủ đề", description = "Lấy danh sách chủ đề với phân trang, tìm kiếm và sắp xếp")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<TopicResponse>>> getAll() {
-        List<TopicResponse> response = topicService.getAll();
-        return ResponseEntity.ok(ApiResponse.success(response));
+    public ResponseEntity<ApiResponse<PageResponse<TopicResponse>>> getAll(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id,desc") String sort) {
+        
+        PageResponse<TopicResponse> response = PageResponse.of(topicService.search(keyword, PageableUtil.createPageable(page, size, sort)));
+        return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
     }
 }

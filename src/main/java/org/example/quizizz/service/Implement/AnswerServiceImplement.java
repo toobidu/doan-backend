@@ -91,4 +91,31 @@ public class AnswerServiceImplement implements IAnswerService {
                 .map(answerMapper::toResponse)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public org.springframework.data.domain.Page<AnswerResponse> search(
+            String keyword, Long questionId, Boolean isCorrect, org.springframework.data.domain.Pageable pageable) {
+        
+        org.springframework.data.domain.Page<Answer> answers;
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        
+        if (questionId != null && isCorrect != null && hasKeyword) {
+            answers = answerRepository.findByQuestionIdAndIsCorrectAndAnswerTextContainingIgnoreCase(
+                    questionId, isCorrect, keyword, pageable);
+        } else if (questionId != null && isCorrect != null) {
+            answers = answerRepository.findByQuestionIdAndIsCorrect(questionId, isCorrect, pageable);
+        } else if (questionId != null && hasKeyword) {
+            answers = answerRepository.findByQuestionIdAndAnswerTextContainingIgnoreCase(
+                    questionId, keyword, pageable);
+        } else if (isCorrect != null && hasKeyword) {
+            answers = answerRepository.findByIsCorrectAndAnswerTextContainingIgnoreCase(
+                    isCorrect, keyword, pageable);
+        } else if (hasKeyword) {
+            answers = answerRepository.findByAnswerTextContainingIgnoreCase(keyword, pageable);
+        } else {
+            answers = answerRepository.findAll(pageable);
+        }
+        
+        return answers.map(answerMapper::toResponse);
+    }
 }

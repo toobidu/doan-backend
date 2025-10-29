@@ -24,4 +24,10 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     
     long countByTopicIdAndQuestionType(Long topicId, String questionType);
     long countByTopicId(Long topicId);
+    
+    org.springframework.data.domain.Page<Question> findByQuestionTextContainingIgnoreCase(String keyword, org.springframework.data.domain.Pageable pageable);
+    org.springframework.data.domain.Page<Question> findByTopicIdAndQuestionTextContainingIgnoreCase(Long topicId, String keyword, org.springframework.data.domain.Pageable pageable);
+    org.springframework.data.domain.Page<Question> findByQuestionTypeAndQuestionTextContainingIgnoreCase(String questionType, String keyword, org.springframework.data.domain.Pageable pageable);
+    org.springframework.data.domain.Page<Question> findByTopicIdAndQuestionType(Long topicId, String questionType, org.springframework.data.domain.Pageable pageable);
+    org.springframework.data.domain.Page<Question> findByTopicIdAndQuestionTypeAndQuestionTextContainingIgnoreCase(Long topicId, String questionType, String keyword, org.springframework.data.domain.Pageable pageable);
 }

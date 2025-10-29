@@ -2,8 +2,10 @@ package org.example.quizizz.controller.api;
 
 import org.example.quizizz.common.config.ApiResponse;
 import org.example.quizizz.common.constants.MessageCode;
+import org.example.quizizz.model.dto.PageResponse;
 import org.example.quizizz.model.dto.answer.*;
 import org.example.quizizz.service.Interface.IAnswerService;
+import org.example.quizizz.util.PageableUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -63,10 +65,18 @@ public class AnswerController {
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
     }
 
-    @Operation(summary = "Lấy đáp án theo câu hỏi", description = "Lấy tất cả đáp án của một câu hỏi")
-    @GetMapping("/question/{questionId}")
-    public ResponseEntity<ApiResponse<List<AnswerResponse>>> getAnswersByQuestionId(@PathVariable Long questionId) {
-        List<AnswerResponse> responses = answerService.getAnswersByQuestionId(questionId);
-        return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, responses));
+    @Operation(summary = "Lấy danh sách đáp án", description = "Lấy danh sách đáp án với phân trang, tìm kiếm và lọc theo câu hỏi, trạng thái đúng/sai")
+    @GetMapping
+    public ResponseEntity<ApiResponse<PageResponse<AnswerResponse>>> getAll(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long questionId,
+            @RequestParam(required = false) Boolean isCorrect,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id,desc") String sort) {
+        
+        PageResponse<AnswerResponse> response = PageResponse.of(
+                answerService.search(keyword, questionId, isCorrect, PageableUtil.createPageable(page, size, sort)));
+        return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
     }
 }

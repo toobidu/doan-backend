@@ -2,8 +2,10 @@ package org.example.quizizz.controller.api;
 
 import org.example.quizizz.common.config.ApiResponse;
 import org.example.quizizz.common.constants.MessageCode;
+import org.example.quizizz.model.dto.PageResponse;
 import org.example.quizizz.model.dto.question.*;
 import org.example.quizizz.service.Interface.IQuestionService;
+import org.example.quizizz.util.PageableUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -104,10 +106,18 @@ public class QuestionController {
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
     }
 
-    @Operation(summary = "Lấy câu hỏi theo topic", description = "Lấy tất cả câu hỏi và đáp án theo topic ID")
-    @GetMapping("/topic/{topicId}")
-    public ResponseEntity<ApiResponse<List<QuestionWithAnswersResponse>>> getQuestionsByTopicId(@PathVariable Long topicId) {
-        List<QuestionWithAnswersResponse> questions = questionService.getQuestionsByTopicId(topicId);
-        return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, questions));
+    @Operation(summary = "Lấy danh sách câu hỏi", description = "Lấy danh sách câu hỏi với phân trang, tìm kiếm và lọc theo topic, loại câu hỏi")
+    @GetMapping
+    public ResponseEntity<ApiResponse<PageResponse<QuestionWithAnswersResponse>>> getAll(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long topicId,
+            @RequestParam(required = false) String questionType,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id,desc") String sort) {
+        
+        PageResponse<QuestionWithAnswersResponse> response = PageResponse.of(
+                questionService.search(keyword, topicId, questionType, PageableUtil.createPageable(page, size, sort)));
+        return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
     }
 }

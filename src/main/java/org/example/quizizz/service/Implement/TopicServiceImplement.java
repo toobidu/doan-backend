@@ -83,4 +83,22 @@ public class TopicServiceImplement implements ITopicService {
                 .map(topicMapper::toTopicResponse)
                 .toList();
     }
+
+    /**
+     * Tìm kiếm chủ đề với phân trang.
+     * @param keyword Từ khóa tìm kiếm
+     * @param pageable Thông tin phân trang
+     * @return Danh sách chủ đề phân trang
+     */
+    @Override
+    public org.springframework.data.domain.Page<TopicResponse> search(String keyword, org.springframework.data.domain.Pageable pageable) {
+        org.springframework.data.domain.Page<Topic> topics;
+        if (keyword == null || keyword.trim().isEmpty()) {
+            topics = topicRepository.findAll(pageable);
+        } else {
+            topics = topicRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
+                    keyword, keyword, pageable);
+        }
+        return topics.map(topicMapper::toTopicResponse);
+    }
 }

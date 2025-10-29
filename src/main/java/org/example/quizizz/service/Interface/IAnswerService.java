@@ -1,6 +1,8 @@
 package org.example.quizizz.service.Interface;
 
 import org.example.quizizz.model.dto.answer.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -11,4 +13,5 @@ public interface IAnswerService {
     void deleteAnswer(Long id);
     AnswerResponse getAnswerById(Long id);
     List<AnswerResponse> getAnswersByQuestionId(Long questionId);
+    Page<AnswerResponse> search(String keyword, Long questionId, Boolean isCorrect, Pageable pageable);
 }

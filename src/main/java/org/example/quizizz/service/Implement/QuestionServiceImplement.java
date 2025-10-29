@@ -137,4 +137,31 @@ public class QuestionServiceImplement implements IQuestionService {
                 .map(this::mapToQuestionWithAnswers)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public org.springframework.data.domain.Page<QuestionWithAnswersResponse> search(
+            String keyword, Long topicId, String questionType, org.springframework.data.domain.Pageable pageable) {
+        
+        org.springframework.data.domain.Page<Question> questions;
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        
+        if (topicId != null && questionType != null && hasKeyword) {
+            questions = questionRepository.findByTopicIdAndQuestionTypeAndQuestionTextContainingIgnoreCase(
+                    topicId, questionType, keyword, pageable);
+        } else if (topicId != null && questionType != null) {
+            questions = questionRepository.findByTopicIdAndQuestionType(topicId, questionType, pageable);
+        } else if (topicId != null && hasKeyword) {
+            questions = questionRepository.findByTopicIdAndQuestionTextContainingIgnoreCase(
+                    topicId, keyword, pageable);
+        } else if (questionType != null && hasKeyword) {
+            questions = questionRepository.findByQuestionTypeAndQuestionTextContainingIgnoreCase(
+                    questionType, keyword, pageable);
+        } else if (hasKeyword) {
+            questions = questionRepository.findByQuestionTextContainingIgnoreCase(keyword, pageable);
+        } else {
+            questions = questionRepository.findAll(pageable);
+        }
+        
+        return questions.map(this::mapToQuestionWithAnswers);
+    }
 }
