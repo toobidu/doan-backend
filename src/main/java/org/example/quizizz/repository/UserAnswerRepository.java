@@ -10,6 +10,5 @@ import java.util.List;
 public interface UserAnswerRepository extends JpaRepository<UserAnswer, Long> {
     List<UserAnswer> findByRoomId(Long roomId);
     List<UserAnswer> findByRoomIdAndUserId(Long roomId, Long userId);
-    List<UserAnswer> findByRoomIdAndQuestionId(Long roomId, Long questionId);
     List<UserAnswer> findByUserId(Long userId);
 }

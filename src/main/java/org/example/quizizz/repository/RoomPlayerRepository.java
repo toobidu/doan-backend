@@ -22,12 +22,6 @@ public interface RoomPlayerRepository extends JpaRepository<RoomPlayers, Long> {
     List<RoomPlayers> findByRoomIdOrderByJoinOrder(@Param("roomId") Long roomId);
 
     /**
-     * Lấy danh sách người chơi trong phòng theo thời gian join (cũ)
-     */
-    @Query("SELECT rp FROM RoomPlayers rp WHERE rp.roomId = :roomId ORDER BY rp.createdAt ASC")
-    List<RoomPlayers> findByRoomIdOrderByJoinedAtAsc(@Param("roomId") Long roomId);
-
-    /**
      * Lấy danh sách người chơi trong phòng
      */
     List<RoomPlayers> findByRoomId(Long roomId);
@@ -48,18 +42,6 @@ public interface RoomPlayerRepository extends JpaRepository<RoomPlayers, Long> {
      */
     @Query("SELECT COUNT(rp) FROM RoomPlayers rp WHERE rp.roomId = :roomId AND rp.status = 'ACTIVE'")
     Integer countPlayersInRoom(@Param("roomId") Long roomId);
-
-    /**
-     * Lấy host của phòng
-     */
-    @Query("SELECT rp FROM RoomPlayers rp WHERE rp.roomId = :roomId AND rp.isHost = true")
-    Optional<RoomPlayers> findHostByRoomId(@Param("roomId") Long roomId);
-
-    /**
-     * Lấy người chơi tiếp theo để làm host (theo thứ tự join)
-     */
-    @Query("SELECT rp FROM RoomPlayers rp WHERE rp.roomId = :roomId AND rp.userId != :currentHostId ORDER BY rp.joinOrder ASC")
-    List<RoomPlayers> findNextHostCandidates(@Param("roomId") Long roomId, @Param("currentHostId") Long currentHostId);
 
     /**
      * Lấy join order cao nhất trong phòng
@@ -83,9 +65,4 @@ public interface RoomPlayerRepository extends JpaRepository<RoomPlayers, Long> {
      */
     void deleteByRoomId(Long roomId);
 
-    /**
-     * Kiểm tra user có phải host của phòng không
-     */
-    @Query("SELECT COUNT(rp) > 0 FROM RoomPlayers rp WHERE rp.roomId = :roomId AND rp.userId = :userId AND rp.isHost = :isHost AND rp.status = 'ACTIVE'")
-    boolean existsByRoomIdAndUserIdAndIsHost(@Param("roomId") Long roomId, @Param("userId") Long userId, @Param("isHost") Boolean isHost);
 }

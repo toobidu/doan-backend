@@ -9,5 +9,4 @@ import java.util.List;
 
 @Repository
 public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
-    List<UserRole> findByUserId(@Param("userId") Long userId);
 }

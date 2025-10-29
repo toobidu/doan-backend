@@ -1,6 +1,8 @@
 package org.example.quizizz.repository;
 
 import org.example.quizizz.model.entity.Question;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,7 +12,6 @@ import java.util.List;
 
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, Long> {
-    boolean existsByQuestionText(String questionText);
     List<Question> findQuestionByTopicId(Long topicId);
     
     @Query(value = "SELECT * FROM questions WHERE topic_id = :topicId AND question_type = :questionType ORDER BY RAND() LIMIT :limit", nativeQuery = true)
@@ -25,9 +26,9 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     long countByTopicIdAndQuestionType(Long topicId, String questionType);
     long countByTopicId(Long topicId);
     
-    org.springframework.data.domain.Page<Question> findByQuestionTextContainingIgnoreCase(String keyword, org.springframework.data.domain.Pageable pageable);
-    org.springframework.data.domain.Page<Question> findByTopicIdAndQuestionTextContainingIgnoreCase(Long topicId, String keyword, org.springframework.data.domain.Pageable pageable);
-    org.springframework.data.domain.Page<Question> findByQuestionTypeAndQuestionTextContainingIgnoreCase(String questionType, String keyword, org.springframework.data.domain.Pageable pageable);
-    org.springframework.data.domain.Page<Question> findByTopicIdAndQuestionType(Long topicId, String questionType, org.springframework.data.domain.Pageable pageable);
-    org.springframework.data.domain.Page<Question> findByTopicIdAndQuestionTypeAndQuestionTextContainingIgnoreCase(Long topicId, String questionType, String keyword, org.springframework.data.domain.Pageable pageable);
+    Page<Question> findByQuestionTextContainingIgnoreCase(String keyword, Pageable pageable);
+    Page<Question> findByTopicIdAndQuestionTextContainingIgnoreCase(Long topicId, String keyword, Pageable pageable);
+    Page<Question> findByQuestionTypeAndQuestionTextContainingIgnoreCase(String questionType, String keyword, Pageable pageable);
+    Page<Question> findByTopicIdAndQuestionType(Long topicId, String questionType, Pageable pageable);
+    Page<Question> findByTopicIdAndQuestionTypeAndQuestionTextContainingIgnoreCase(Long topicId, String questionType, String keyword, Pageable pageable);
 }

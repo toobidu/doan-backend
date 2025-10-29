@@ -20,13 +20,6 @@ public interface PermissionRepository extends JpaRepository<Permission, Long> {
     """)
     List<Permission> findPermissionsByUserId(@Param("userId") Long userId);
 
-    @Query("""
-        SELECT p FROM Permission p
-        JOIN RolePermission rp ON p.id = rp.permissionId
-        WHERE rp.roleId = :roleId
-    """)
-    List<Permission> findPermissionsByRoleId(@Param("roleId") Long roleId);
-
     @Query("SELECT p FROM Permission p WHERE p.permissionName = :permissionName")
     Optional<Permission> findByPermissionName(@Param("permissionName") String permissionName);
 
