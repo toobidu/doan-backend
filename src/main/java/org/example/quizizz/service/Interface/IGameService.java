@@ -8,8 +8,6 @@ public interface IGameService {
     NextQuestionResponse getCurrentQuestion(Long roomId);
     QuestionResultResponse submitAnswer(Long roomId, Long userId, AnswerSubmitRequest request);
     GameOverResponse endGame(Long roomId);
-    boolean isGameActive(Long roomId);
-    int getRemainingTime(Long roomId);
     Long resolveAnswerId(Long questionId, Integer selectedOptionIndex, String selectedAnswer, String answerText);
     NextQuestionResponse getNextQuestionForPlayer(Long roomId, Long userId);
     boolean haveAllPlayersCompleted(Long roomId);

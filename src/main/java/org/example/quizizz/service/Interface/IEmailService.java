@@ -17,25 +17,6 @@ public interface IEmailService {
     boolean sendPasswordResetEmail(String toEmail, String username, String newPassword);
 
     /**
-     * Gửi email chào mừng cho user mới đăng ký
-     *
-     * @param toEmail email người nhận
-     * @param username tên người dùng
-     * @return true nếu gửi thành công, false nếu thất bại
-     */
-    boolean sendWelcomeEmail(String toEmail, String username);
-
-    /**
-     * Gửi email thông báo chung
-     *
-     * @param toEmail email người nhận
-     * @param subject tiêu đề email
-     * @param content nội dung email
-     * @return true nếu gửi thành công, false nếu thất bại
-     */
-    boolean sendNotificationEmail(String toEmail, String subject, String content);
-
-    /**
      * Gửi email xác thực tài khoản khi đăng ký
      *
      * @param toEmail email người nhận

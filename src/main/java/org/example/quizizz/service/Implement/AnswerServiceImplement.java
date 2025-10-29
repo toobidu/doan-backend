@@ -79,19 +79,6 @@ public class AnswerServiceImplement implements IAnswerService {
         return answerMapper.toResponse(answer);
     }
 
-    /**
-     * Lấy danh sách câu trả lời theo id của câu hỏi
-     * @param questionId
-     * @return
-     */
-    @Override
-    public List<AnswerResponse> getAnswersByQuestionId(Long questionId) {
-        List<Answer> answers = answerRepository.findByQuestionId(questionId);
-        return answers.stream()
-                .map(answerMapper::toResponse)
-                .collect(Collectors.toList());
-    }
-
     @Override
     public org.springframework.data.domain.Page<AnswerResponse> search(
             String keyword, Long questionId, Boolean isCorrect, org.springframework.data.domain.Pageable pageable) {

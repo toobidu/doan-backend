@@ -421,20 +421,6 @@ public class RoomServiceImplement implements IRoomService {
     }
 
     @Override
-    public PagedRoomResponse getMyRoomsWithPagination(Long userId, int page, int size, String search) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Room> roomPage;
-
-        if (search != null && !search.trim().isEmpty()) {
-            roomPage = roomRepository.findByOwnerIdAndSearch(userId, search.trim(), pageable);
-        } else {
-            roomPage = roomRepository.findByOwnerIdWithPagination(userId, pageable);
-        }
-
-        return mapToPagedResponse(roomPage);
-    }
-
-    @Override
     public PagedRoomResponse getAllRoomsSimple(int page, int size, String search) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Room> roomPage;
@@ -513,15 +499,6 @@ public class RoomServiceImplement implements IRoomService {
         }
 
         roomRepository.save(room);
-    }
-
-    @Override
-    public List<RoomResponse> quickSearchRooms(String query) {
-        List<Room> rooms = roomRepository.findPublicRoomsByRoomNameContaining(query);
-        return rooms.stream()
-                .limit(10)
-                .map(this::mapToRoomResponse)
-                .collect(Collectors.toList());
     }
 
     private PagedRoomResponse mapToPagedResponse(Page<Room> roomPage) {

@@ -12,6 +12,5 @@ public interface IAnswerService {
     AnswerResponse updateAnswer(Long id, UpdateAnswerRequest request);
     void deleteAnswer(Long id);
     AnswerResponse getAnswerById(Long id);
-    List<AnswerResponse> getAnswersByQuestionId(Long questionId);
     Page<AnswerResponse> search(String keyword, Long questionId, Boolean isCorrect, Pageable pageable);
 }

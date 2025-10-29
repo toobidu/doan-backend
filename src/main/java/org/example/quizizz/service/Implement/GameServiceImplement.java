@@ -427,34 +427,12 @@ public class GameServiceImplement implements IGameService {
         return response;
     }
 
-    @Override
-    public boolean isGameActive(Long roomId) {
-        String gameId = "game:" + roomId;
-        String status = (String) redisService.getGameSession(gameId).get("status");
-        return GameStatus.IN_PROGRESS.name().equals(status);
-    }
-
-    @Override
-    public int getRemainingTime(Long roomId) {
-        try {
-            GameTimerService gameTimerService = applicationContext.getBean(GameTimerService.class);
-            return gameTimerService.getRemainingTime(roomId);
-        } catch (Exception e) {
-            log.warn("Could not get GameTimerService: {}", e.getMessage());
-            return 0;
-        }
-    }
-
     /*** Xử lý event khi hết thời gian trả lời ***/
     @EventListener
     public void handleTimerFinished(GameTimerEvent event) {
         try {
             Long roomId = event.getRoomId();
             log.info("Timer finished for room {}", roomId);
-
-            // REMOVED: Broadcasting next question to all players
-            // Players now progress individually based on their own answer submissions
-            // Each player gets their next question via getNextQuestionForPlayer() when they submit an answer
 
             // Check if all players have completed the game
             boolean allCompleted = haveAllPlayersCompleted(roomId);

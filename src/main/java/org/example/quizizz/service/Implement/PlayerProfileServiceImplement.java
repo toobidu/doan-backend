@@ -27,6 +27,7 @@ public class PlayerProfileServiceImplement implements IPlayerProfileService {
      * Cập nhật player profile sau khi hoàn thành game
      * Tự động tính toán: average_score, preferredTopics, total_play_time
      */
+    @Override
     public void updateProfileAfterGame(Long userId, Long roomId) {
         try {
             log.info("Updating player profile for user {} after game in room {}", userId, roomId);
@@ -122,17 +123,11 @@ public class PlayerProfileServiceImplement implements IPlayerProfileService {
         }
     }
 
-    /**
-     * Lấy player profile để hiển thị cho frontend
-     */
-    public PlayerProfile getPlayerProfile(Long userId) {
-        return playerProfileRepository.findByUserId(userId)
-            .orElse(null);
-    }
 
     /**
      * Khởi tạo player profile cho user mới
      */
+    @Override
     public void initializeProfile(Long userId, Integer age) {
         if (playerProfileRepository.findByUserId(userId).isPresent()) {
             log.info("Profile already exists for user {}", userId);
