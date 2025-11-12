@@ -8,6 +8,11 @@ import org.example.quizizz.repository.AnswerRepository;
 import org.example.quizizz.repository.QuestionRepository;
 import org.example.quizizz.service.Interface.IQuestionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,6 +92,7 @@ public class QuestionServiceImplement implements IQuestionService {
     }
 
     @Override
+    @CacheEvict(value = {"questions", "questionsByTopic"}, allEntries = true)
     public QuestionResponse createQuestion(CreateQuestionRequest request) {
         Question question = questionMapper.toEntity(request);
         Question savedQuestion = questionRepository.save(question);
@@ -94,6 +100,7 @@ public class QuestionServiceImplement implements IQuestionService {
     }
 
     @Override
+    @CacheEvict(value = {"questions", "questionsByTopic"}, allEntries = true)
     public List<QuestionResponse> createBulkQuestions(CreateBulkQuestionsRequest request) {
         List<Question> questions = request.getQuestions().stream()
                 .map(questionMapper::toEntity)
@@ -105,6 +112,8 @@ public class QuestionServiceImplement implements IQuestionService {
     }
 
     @Override
+    @CachePut(value = "question", key = "#id")
+    @CacheEvict(value = {"questions", "questionsByTopic"}, allEntries = true)
     public QuestionResponse updateQuestion(Long id, UpdateQuestionRequest request) {
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Question not found"));
@@ -114,16 +123,19 @@ public class QuestionServiceImplement implements IQuestionService {
     }
 
     @Override
+    @CacheEvict(value = {"question", "questions", "questionsByTopic"}, allEntries = true)
     public void deleteQuestion(Long id) {
         questionRepository.deleteById(id);
     }
 
     @Override
+    @CacheEvict(value = {"question", "questions", "questionsByTopic"}, allEntries = true)
     public void deleteBulkQuestions(DeleteBulkQuestionsRequest request) {
         questionRepository.deleteAllById(request.getQuestionIds());
     }
 
     @Override
+    @Cacheable(value = "question", key = "#id")
     public QuestionResponse getQuestionById(Long id) {
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Question not found"));
@@ -131,6 +143,7 @@ public class QuestionServiceImplement implements IQuestionService {
     }
 
     @Override
+    @Cacheable(value = "questionsByTopic", key = "#topicId")
     public List<QuestionWithAnswersResponse> getQuestionsByTopicId(Long topicId) {
         List<Question> questions = questionRepository.findQuestionByTopicId(topicId);
         return questions.stream()
@@ -139,8 +152,8 @@ public class QuestionServiceImplement implements IQuestionService {
     }
 
     @Override
-    public org.springframework.data.domain.Page<QuestionWithAnswersResponse> search(
-            String keyword, Long topicId, String questionType, org.springframework.data.domain.Pageable pageable) {
+    public Page<QuestionWithAnswersResponse> search(
+            String keyword, Long topicId, String questionType, Pageable pageable) {
         
         org.springframework.data.domain.Page<Question> questions;
         boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();

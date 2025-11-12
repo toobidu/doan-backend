@@ -8,6 +8,9 @@ import org.example.quizizz.model.entity.Topic;
 import org.example.quizizz.repository.TopicRepository;
 import org.example.quizizz.service.Interface.ITopicService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +29,7 @@ public class TopicServiceImplement implements ITopicService {
      * @return Thông tin chủ đề vừa tạo
      */
     @Override
+    @CacheEvict(value = "topics", allEntries = true)
     public TopicResponse create(CreateTopicRequest request) {
         if (topicRepository.existsByName(request.getName())) {
             throw new RuntimeException("Topic already exists");
@@ -42,6 +46,8 @@ public class TopicServiceImplement implements ITopicService {
      * @return Thông tin chủ đề sau cập nhật
      */
     @Override
+    @CachePut(value = "topic", key = "#id")
+    @CacheEvict(value = "topics", allEntries = true)
     public TopicResponse update(Long id, UpdateTopicRequest request) {
         Topic topic = topicRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Topic not found"));
@@ -55,6 +61,7 @@ public class TopicServiceImplement implements ITopicService {
      * @param id Id chủ đề
      */
     @Override
+    @CacheEvict(value = {"topic", "topics"}, allEntries = true)
     public void delete(Long id) {
         Topic topic = topicRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Topic not found"));
@@ -67,6 +74,7 @@ public class TopicServiceImplement implements ITopicService {
      * @return Thông tin chủ đề
      */
     @Override
+    @Cacheable(value = "topic", key = "#id")
     public TopicResponse getById(Long id) {
         Topic topic = topicRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Topic not found"));
@@ -78,6 +86,7 @@ public class TopicServiceImplement implements ITopicService {
      * @return Danh sách chủ đề
      */
     @Override
+    @Cacheable(value = "topics")
     public List<TopicResponse> getAll() {
         return topicRepository.findAll().stream()
                 .map(topicMapper::toTopicResponse)

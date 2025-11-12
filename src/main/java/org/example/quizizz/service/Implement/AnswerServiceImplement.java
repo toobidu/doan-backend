@@ -6,6 +6,9 @@ import org.example.quizizz.model.entity.Answer;
 import org.example.quizizz.repository.AnswerRepository;
 import org.example.quizizz.service.Interface.IAnswerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +29,7 @@ public class AnswerServiceImplement implements IAnswerService {
      * @return
      */
     @Override
+    @CacheEvict(value = {"answers", "questions", "questionsByTopic"}, allEntries = true)
     public AnswerResponse createAnswer(CreateAnswerRequest request) {
         Answer answer = answerMapper.toEntity(request);
         Answer savedAnswer = answerRepository.save(answer);
@@ -33,6 +37,7 @@ public class AnswerServiceImplement implements IAnswerService {
     }
 
     @Override
+    @CacheEvict(value = {"answers", "questions", "questionsByTopic"}, allEntries = true)
     public List<AnswerResponse> createBulkAnswers(CreateBulkAnswersRequest request) {
         List<Answer> answers = request.getAnswers().stream()
                 .map(answerMapper::toEntity)
@@ -50,6 +55,8 @@ public class AnswerServiceImplement implements IAnswerService {
      * @return
      */
     @Override
+    @CachePut(value = "answer", key = "#id")
+    @CacheEvict(value = {"answers", "questions", "questionsByTopic"}, allEntries = true)
     public AnswerResponse updateAnswer(Long id, UpdateAnswerRequest request) {
         Answer answer = answerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Answer not found"));
@@ -63,6 +70,7 @@ public class AnswerServiceImplement implements IAnswerService {
      * @param id
      */
     @Override
+    @CacheEvict(value = {"answer", "answers", "questions", "questionsByTopic"}, allEntries = true)
     public void deleteAnswer(Long id) {
         answerRepository.deleteById(id);
     }
@@ -73,6 +81,7 @@ public class AnswerServiceImplement implements IAnswerService {
      * @return
      */
     @Override
+    @Cacheable(value = "answer", key = "#id")
     public AnswerResponse getAnswerById(Long id) {
         Answer answer = answerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Answer not found"));

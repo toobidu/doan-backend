@@ -3,6 +3,7 @@ package org.example.quizizz.model.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public class PageResponse<T> {
     private boolean first;
     private boolean last;
     
-    public static <T> PageResponse<T> of(org.springframework.data.domain.Page<T> springPage) {
+    public static <T> PageResponse<T> of(Page<T> springPage) {
         return new PageResponse<>(
             springPage.getContent(),
             springPage.getNumber(),

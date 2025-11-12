@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/topics")
 @RequiredArgsConstructor
@@ -76,16 +78,27 @@ public class TopicController {
     }
 
     /**
-     * Lấy danh sách chủ đề với phân trang và tìm kiếm.
+     * Lấy tất cả chủ đề (không phân trang).
+     * @return Danh sách tất cả chủ đề
+     */
+    @Operation(summary = "Lấy tất cả chủ đề", description = "Lấy danh sách tất cả chủ đề không phân trang")
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<TopicResponse>>> getAll() {
+        List<TopicResponse> response = topicService.getAll();
+        return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
+    }
+
+    /**
+     * Tìm kiếm và lọc chủ đề với phân trang.
      * @param keyword Từ khóa tìm kiếm (optional)
      * @param page Số trang (bắt đầu từ 0)
      * @param size Số lượng mỗi trang
      * @param sort Sắp xếp (ví dụ: name,asc)
      * @return Danh sách chủ đề phân trang
      */
-    @Operation(summary = "Lấy danh sách chủ đề", description = "Lấy danh sách chủ đề với phân trang, tìm kiếm và sắp xếp")
-    @GetMapping
-    public ResponseEntity<ApiResponse<PageResponse<TopicResponse>>> getAll(
+    @Operation(summary = "Tìm kiếm chủ đề", description = "Tìm kiếm và lọc chủ đề với phân trang")
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PageResponse<TopicResponse>>> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
