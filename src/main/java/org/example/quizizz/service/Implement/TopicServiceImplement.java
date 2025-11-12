@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,8 +102,8 @@ public class TopicServiceImplement implements ITopicService {
      * @return Danh sách chủ đề phân trang
      */
     @Override
-    public org.springframework.data.domain.Page<TopicResponse> search(String keyword, org.springframework.data.domain.Pageable pageable) {
-        org.springframework.data.domain.Page<Topic> topics;
+    public Page<TopicResponse> search(String keyword, Pageable pageable) {
+        Page<Topic> topics;
         if (keyword == null || keyword.trim().isEmpty()) {
             topics = topicRepository.findAll(pageable);
         } else {
