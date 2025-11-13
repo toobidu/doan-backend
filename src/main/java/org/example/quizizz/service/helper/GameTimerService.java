@@ -54,11 +54,6 @@ public class GameTimerService {
         }
     }
     
-    public int getRemainingTime(Long roomId) {
-        GameTimer timer = activeTimers.get(roomId);
-        return timer != null ? timer.getRemainingTime() : 0;
-    }
-    
     private void broadcastTimerUpdate(Long roomId, int remainingTime) {
         try {
             // Gửi sự kiện đếm ngược đến tất cả người chơi trong phòng

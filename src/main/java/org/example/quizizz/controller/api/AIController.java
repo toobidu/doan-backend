@@ -11,7 +11,10 @@ import org.example.quizizz.model.dto.ai.AIGenerateResponse;
 import org.example.quizizz.service.Interface.IAIService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/ai")
@@ -19,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "8. AI Assistant", description = "APIs tạo câu hỏi tự động bằng AI")
 public class AIController {
     
-    private final IAIService aiService;
+    private final IAIService aiServiceImpl;
     
     /**
      * Tạo câu hỏi và đáp án bằng AI
@@ -33,7 +36,7 @@ public class AIController {
     public ResponseEntity<ApiResponse<AIGenerateResponse>> generateQuestions(
             @RequestBody @Valid AIGenerateRequest request) {
         
-        AIGenerateResponse response = aiService.generateQuestionsFromNaturalLanguage(
+        AIGenerateResponse response = aiServiceImpl.generateQuestionsFromNaturalLanguage(
             request.getTopicId(), 
             request.getUserPrompt()
         );

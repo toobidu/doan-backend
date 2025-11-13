@@ -20,7 +20,7 @@ public class Question implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "question_text", nullable = false)
+    @Column(name = "question_text", nullable = false, length = 1000)
     private String questionText;
     
     @Column(name = "topic_id", nullable = false)

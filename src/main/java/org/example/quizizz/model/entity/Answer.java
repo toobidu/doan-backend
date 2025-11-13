@@ -20,7 +20,7 @@ public class Answer implements Serializable {
     @Column(name = "question_id", nullable = false)
     private Long questionId;
 
-    @Column(name = "answer_text", nullable = false)
+    @Column(name = "answer_text", nullable = false, length = 500)
     private String answerText;
 
     @Column(name = "is_correct", nullable = false)
