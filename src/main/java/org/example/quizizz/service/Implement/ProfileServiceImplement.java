@@ -33,6 +33,7 @@ public class ProfileServiceImplement implements IProfileService {
     private final UserAnswerRepository userAnswerRepository;
     private final QuestionRepository questionRepository;
     private final TopicRepository topicRepository;
+    private final ExamRepository examRepository;
     private final GameSessionRepository gameSessionRepository;
     private final RoomRepository roomRepository;
     private final AchievementService achievementService;
@@ -313,8 +314,11 @@ public class ProfileServiceImplement implements IProfileService {
 
             for (UserAnswer answer : userAnswers) {
                 Question question = questionRepository.findById(answer.getQuestionId()).orElse(null);
-                if (question != null && question.getTopicId() != null) {
-                    answersByTopic.computeIfAbsent(question.getTopicId(), k -> new ArrayList<>()).add(answer);
+                if (question != null && question.getExamId() != null) {
+                    Exam exam = examRepository.findById(question.getExamId()).orElse(null);
+                    if (exam != null && exam.getTopicId() != null) {
+                        answersByTopic.computeIfAbsent(exam.getTopicId(), k -> new ArrayList<>()).add(answer);
+                    }
                 }
             }
 

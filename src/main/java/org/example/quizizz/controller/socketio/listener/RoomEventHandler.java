@@ -44,6 +44,7 @@ public class RoomEventHandler {
                     data.getRoomName(),
                     data.getRoomMode(),
                     data.getTopicId(),
+                    data.getExamId(),
                     data.getIsPrivate(),
                     data.getMaxPlayers(),
                     data.getQuestionCount(),

@@ -20,8 +20,6 @@ public class PlayerProfileServiceImplement implements IPlayerProfileService {
     private final PlayerProfileRepository playerProfileRepository;
     private final GameHistoryRepository gameHistoryRepository;
     private final RankRepository rankRepository;
-    private final UserAnswerRepository userAnswerRepository;
-    private final QuestionRepository questionRepository;
 
     /**
      * Cập nhật player profile sau khi hoàn thành game
@@ -37,9 +35,8 @@ public class PlayerProfileServiceImplement implements IPlayerProfileService {
                 .orElseGet(() -> {
                     PlayerProfile newProfile = new PlayerProfile();
                     newProfile.setUserId(userId);
-                    newProfile.setAge(18); // Default age
+                    newProfile.setAge(18);
                     newProfile.setAverageScore(0.0);
-                    newProfile.setPreferredTopics(new ArrayList<>());
                     newProfile.setTotalPlayTime(0);
                     log.info("Created new player profile for user {}", userId);
                     return newProfile;
@@ -56,12 +53,7 @@ public class PlayerProfileServiceImplement implements IPlayerProfileService {
                 log.info("Updated average score: {}", avgScore);
             }
 
-            // 2. Tính preferred topics (top 3 chủ đề chơi nhiều nhất)
-            List<String> preferredTopics = calculatePreferredTopics(userId);
-            profile.setPreferredTopics(preferredTopics);
-            log.info("Updated preferred topics: {}", preferredTopics);
-
-            // 3. Cập nhật total play time từ ranks table
+            // 2. Cập nhật total play time từ ranks table
             rankRepository.findByUserId(userId).ifPresent(rank -> {
                 // Convert từ milliseconds sang seconds
                 int totalPlayTimeSeconds = (int) (rank.getTotalTime() / 1000);
@@ -75,51 +67,6 @@ public class PlayerProfileServiceImplement implements IPlayerProfileService {
 
         } catch (Exception e) {
             log.error("Error updating player profile for user {}: {}", userId, e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Tính toán top 3 chủ đề mà user chơi nhiều nhất
-     */
-    private List<String> calculatePreferredTopics(Long userId) {
-        try {
-            // Lấy tất cả user answers
-            List<UserAnswer> userAnswers = userAnswerRepository.findByUserId(userId);
-
-            if (userAnswers.isEmpty()) {
-                return new ArrayList<>();
-            }
-
-            // Đếm số lần xuất hiện của mỗi topic
-            Map<Long, Long> topicCounts = userAnswers.stream()
-                .map(UserAnswer::getQuestionId)
-                .map(questionId -> {
-                    try {
-                        Question question = questionRepository.findById(questionId).orElse(null);
-                        return question != null ? question.getTopicId() : null;
-                    } catch (Exception e) {
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.groupingBy(
-                    topicId -> topicId,
-                    Collectors.counting()
-                ));
-
-            // Lấy top 3 topics
-            List<String> topTopics = topicCounts.entrySet().stream()
-                .sorted(Map.Entry.<Long, Long>comparingByValue().reversed())
-                .limit(3)
-                .map(entry -> "Topic " + entry.getKey()) // TODO: Get topic name from Topic entity
-                .collect(Collectors.toList());
-
-            log.info("Calculated preferred topics for user {}: {}", userId, topTopics);
-            return topTopics;
-
-        } catch (Exception e) {
-            log.error("Error calculating preferred topics: {}", e.getMessage());
-            return new ArrayList<>();
         }
     }
 
@@ -138,7 +85,6 @@ public class PlayerProfileServiceImplement implements IPlayerProfileService {
         profile.setUserId(userId);
         profile.setAge(age != null ? age : 18);
         profile.setAverageScore(0.0);
-        profile.setPreferredTopics(new ArrayList<>());
         profile.setTotalPlayTime(0);
 
         playerProfileRepository.save(profile);

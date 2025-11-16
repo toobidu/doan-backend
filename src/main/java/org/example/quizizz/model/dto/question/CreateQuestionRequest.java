@@ -14,8 +14,8 @@ public class CreateQuestionRequest {
     @NotBlank(message = "Question text is required")
     private String questionText;
 
-    @NotNull(message = "Topic ID is required")
-    private Long topicId;
+    @NotNull(message = "Exam ID is required")
+    private Long examId;
 
     @NotNull(message = "Question type is required")
     private String questionType;

@@ -27,11 +27,11 @@ public class QuestionController {
     @Operation(summary = "Lấy câu hỏi ngẫu nhiên với đáp án", description = "Lấy câu hỏi ngẫu nhiên kèm đáp án theo topic và loại câu hỏi")
     @GetMapping("/random")
     public ResponseEntity<ApiResponse<List<QuestionWithAnswersResponse>>> getRandomQuestions(
-            @RequestParam(required = false) Long topicId,
+            @RequestParam(required = false) Long examId,
             @RequestParam(required = false) String questionType,
             @RequestParam(defaultValue = "10") int count) {
 
-        List<QuestionWithAnswersResponse> questions = questionService.getRandomQuestionsWithAnswers(topicId, questionType, count);
+        List<QuestionWithAnswersResponse> questions = questionService.getRandomQuestionsWithAnswers(examId, questionType, count);
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, questions));
     }
 
@@ -39,21 +39,21 @@ public class QuestionController {
     @GetMapping("/random/player/{playerId}")
     public ResponseEntity<ApiResponse<List<QuestionWithAnswersResponse>>> getRandomQuestionsForPlayer(
             @PathVariable Long playerId,
-            @RequestParam(required = false) Long topicId,
+            @RequestParam(required = false) Long examId,
             @RequestParam(required = false) String questionType,
             @RequestParam(defaultValue = "10") int count) {
 
-        List<QuestionWithAnswersResponse> questions = questionService.getRandomQuestionsForPlayer(topicId, questionType, count, playerId);
+        List<QuestionWithAnswersResponse> questions = questionService.getRandomQuestionsForPlayer(examId, questionType, count, playerId);
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, questions));
     }
 
     @Operation(summary = "Đếm số câu hỏi có sẵn", description = "Đếm số câu hỏi có sẵn theo topic và loại câu hỏi")
     @GetMapping("/count")
     public ResponseEntity<ApiResponse<Long>> countAvailableQuestions(
-            @RequestParam(required = false) Long topicId,
+            @RequestParam(required = false) Long examId,
             @RequestParam(required = false) String questionType) {
 
-        long count = questionService.countAvailableQuestions(topicId, questionType);
+        long count = questionService.countAvailableQuestions(examId, questionType);
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, count));
     }
 
@@ -110,14 +110,14 @@ public class QuestionController {
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<QuestionWithAnswersResponse>>> getAll(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Long topicId,
+            @RequestParam(required = false) Long examId,
             @RequestParam(required = false) String questionType,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id,desc") String sort) {
         
         PageResponse<QuestionWithAnswersResponse> response = PageResponse.of(
-                questionService.search(keyword, topicId, questionType, PageableUtil.createPageable(page, size, sort)));
+                questionService.search(keyword, examId, questionType, PageableUtil.createPageable(page, size, sort)));
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
     }
 }

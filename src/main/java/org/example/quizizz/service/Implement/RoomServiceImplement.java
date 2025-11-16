@@ -12,10 +12,7 @@ import org.example.quizizz.model.dto.room.*;
 import org.example.quizizz.model.entity.Room;
 import org.example.quizizz.model.entity.RoomPlayers;
 import org.example.quizizz.model.entity.User;
-import org.example.quizizz.repository.RoomPlayerRepository;
-import org.example.quizizz.repository.RoomRepository;
-import org.example.quizizz.repository.TopicRepository;
-import org.example.quizizz.repository.UserRepository;
+import org.example.quizizz.repository.*;
 import org.example.quizizz.service.Interface.IRoomService;
 import org.example.quizizz.util.RoomCodeGenerator;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +38,7 @@ public class RoomServiceImplement implements IRoomService {
     private final RoomPlayerRepository roomPlayerRepository;
     private final UserRepository userRepository;
     private final TopicRepository topicRepository;
+    private final ExamRepository examRepository;
     private final SocketIOServer socketIOServer;
     private final RoomMapper roomMapper;
     private final RoomPlayerMapper roomPlayerMapper;
@@ -529,6 +527,12 @@ public class RoomServiceImplement implements IRoomService {
         if (room.getTopicId() != null) {
             topicRepository.findById(room.getTopicId())
                     .ifPresent(topic -> response.setTopicName(topic.getName()));
+        }
+
+        // Load and set exam title
+        if (room.getExamId() != null) {
+            examRepository.findById(room.getExamId())
+                    .ifPresent(exam -> response.setExamTitle(exam.getTitle()));
         }
 
         // Load and set owner username

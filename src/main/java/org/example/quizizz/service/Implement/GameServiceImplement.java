@@ -67,8 +67,8 @@ public class GameServiceImplement implements IGameService {
         gameSession.setStartTime(LocalDateTime.now());
         gameSession = gameSessionRepository.save(gameSession);
 
-        // Lấy danh sách câu hỏi cho topic của room
-        List<Question> questions = questionRepository.findQuestionByTopicId(room.getTopicId());
+        // Lấy danh sách câu hỏi từ exam của room
+        List<Question> questions = questionRepository.findByExamId(room.getExamId());
 
         // Shuffle và lấy số lượng theo cấu hình phòng
         Collections.shuffle(questions);

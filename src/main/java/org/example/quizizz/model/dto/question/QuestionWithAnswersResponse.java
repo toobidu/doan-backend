@@ -13,7 +13,7 @@ import java.util.List;
 public class QuestionWithAnswersResponse {
     private Long id;
     private String questionText;
-    private Long topicId;
+    private Long examId;
     private String questionType;
     private List<Answer> answers;
 }

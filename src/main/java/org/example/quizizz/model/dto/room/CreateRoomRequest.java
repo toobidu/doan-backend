@@ -20,6 +20,9 @@ public class CreateRoomRequest {
     @NotNull(message = "Topic ID is required")
     private Long topicId;
 
+    @NotNull(message = "Exam ID is required")
+    private Long examId;
+
     private Boolean isPrivate = false;
     private Integer maxPlayers;
     private Integer questionCount = 10;

@@ -11,23 +11,26 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "questions")
+@Table(name = "exams")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Question implements Serializable {
+public class Exam implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "question_text", nullable = false, length = 1000)
-    private String questionText;
-    
-    @Column(name = "exam_id", nullable = false)
-    private Long examId;
+    @Column(name = "topic_id", nullable = false)
+    private Long topicId;
 
-    @Column(name = "question_type", nullable = false)
-    private String questionType;
+    @Column(name = "teacher_id", nullable = false)
+    private Long teacherId;
+
+    @Column(name = "title", nullable = false)
+    private String title;
+
+    @Column(name = "description")
+    private String description;
 
     @Column(name = "created_at")
     @CreationTimestamp

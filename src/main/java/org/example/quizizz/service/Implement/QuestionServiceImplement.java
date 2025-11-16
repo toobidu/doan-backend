@@ -31,14 +31,14 @@ public class QuestionServiceImplement implements IQuestionService {
     private final QuestionMapper questionMapper;
 
     @Override
-    public List<QuestionWithAnswersResponse> getRandomQuestionsWithAnswers(Long topicId, String questionType, int count) {
-        List<Question> questions = getRandomQuestions(topicId, questionType, count);
+    public List<QuestionWithAnswersResponse> getRandomQuestionsWithAnswers(Long examId, String questionType, int count) {
+        List<Question> questions = getRandomQuestions(examId, questionType, count);
         return questions.stream().map(this::mapToQuestionWithAnswers).toList();
     }
 
     @Override
-    public List<QuestionWithAnswersResponse> getRandomQuestionsForPlayer(Long topicId, String questionType, int count, Long playerId) {
-        List<Question> allQuestions = getAllQuestions(topicId, questionType);
+    public List<QuestionWithAnswersResponse> getRandomQuestionsForPlayer(Long examId, String questionType, int count, Long playerId) {
+        List<Question> allQuestions = getAllQuestions(examId, questionType);
         
         // Shuffle based on playerId for consistent randomization per player
         Random random = new Random(playerId.hashCode());
@@ -49,33 +49,33 @@ public class QuestionServiceImplement implements IQuestionService {
     }
 
     @Override
-    public long countAvailableQuestions(Long topicId, String questionType) {
-        if (topicId != null && questionType != null) {
-            return questionRepository.countByTopicIdAndQuestionType(topicId, questionType);
-        } else if (topicId != null) {
-            return questionRepository.countByTopicId(topicId);
+    public long countAvailableQuestions(Long examId, String questionType) {
+        if (examId != null && questionType != null) {
+            return questionRepository.countByExamIdAndQuestionType(examId, questionType);
+        } else if (examId != null) {
+            return questionRepository.countByExamId(examId);
         }
         return questionRepository.count();
     }
 
-    private List<Question> getRandomQuestions(Long topicId, String questionType, int count) {
-        if (topicId != null && questionType != null) {
-            return questionRepository.findRandomQuestionsByTopicAndType(topicId, questionType, count);
-        } else if (topicId != null) {
-            return questionRepository.findRandomQuestionsByTopic(topicId, count);
+    private List<Question> getRandomQuestions(Long examId, String questionType, int count) {
+        if (examId != null && questionType != null) {
+            return questionRepository.findRandomQuestionsByExamAndType(examId, questionType, count);
+        } else if (examId != null) {
+            return questionRepository.findRandomQuestionsByExam(examId, count);
         } else if (questionType != null) {
             return questionRepository.findRandomQuestionsByType(questionType, count);
         }
         return questionRepository.findAll().stream().limit(count).toList();
     }
 
-    private List<Question> getAllQuestions(Long topicId, String questionType) {
-        if (topicId != null && questionType != null) {
+    private List<Question> getAllQuestions(Long examId, String questionType) {
+        if (examId != null && questionType != null) {
             return questionRepository.findAll().stream()
-                .filter(q -> q.getTopicId().equals(topicId) && q.getQuestionType().equals(questionType))
+                .filter(q -> q.getExamId().equals(examId) && q.getQuestionType().equals(questionType))
                 .toList();
-        } else if (topicId != null) {
-            return questionRepository.findQuestionByTopicId(topicId);
+        } else if (examId != null) {
+            return questionRepository.findByExamId(examId);
         }
         return questionRepository.findAll();
     }
@@ -85,7 +85,7 @@ public class QuestionServiceImplement implements IQuestionService {
         return new QuestionWithAnswersResponse(
             question.getId(),
             question.getQuestionText(),
-            question.getTopicId(),
+            question.getExamId(),
             question.getQuestionType(),
             answers
         );
@@ -143,9 +143,9 @@ public class QuestionServiceImplement implements IQuestionService {
     }
 
     @Override
-    @Cacheable(value = "questionsByTopic", key = "#topicId")
-    public List<QuestionWithAnswersResponse> getQuestionsByTopicId(Long topicId) {
-        List<Question> questions = questionRepository.findQuestionByTopicId(topicId);
+    @Cacheable(value = "questionsByExam", key = "#examId")
+    public List<QuestionWithAnswersResponse> getQuestionsByExamId(Long examId) {
+        List<Question> questions = questionRepository.findByExamId(examId);
         return questions.stream()
                 .map(this::mapToQuestionWithAnswers)
                 .collect(Collectors.toList());
@@ -153,19 +153,19 @@ public class QuestionServiceImplement implements IQuestionService {
 
     @Override
     public Page<QuestionWithAnswersResponse> search(
-            String keyword, Long topicId, String questionType, Pageable pageable) {
+            String keyword, Long examId, String questionType, Pageable pageable) {
         
         org.springframework.data.domain.Page<Question> questions;
         boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
         
-        if (topicId != null && questionType != null && hasKeyword) {
-            questions = questionRepository.findByTopicIdAndQuestionTypeAndQuestionTextContainingIgnoreCase(
-                    topicId, questionType, keyword, pageable);
-        } else if (topicId != null && questionType != null) {
-            questions = questionRepository.findByTopicIdAndQuestionType(topicId, questionType, pageable);
-        } else if (topicId != null && hasKeyword) {
-            questions = questionRepository.findByTopicIdAndQuestionTextContainingIgnoreCase(
-                    topicId, keyword, pageable);
+        if (examId != null && questionType != null && hasKeyword) {
+            questions = questionRepository.findByExamIdAndQuestionTypeAndQuestionTextContainingIgnoreCase(
+                    examId, questionType, keyword, pageable);
+        } else if (examId != null && questionType != null) {
+            questions = questionRepository.findByExamIdAndQuestionType(examId, questionType, pageable);
+        } else if (examId != null && hasKeyword) {
+            questions = questionRepository.findByExamIdAndQuestionTextContainingIgnoreCase(
+                    examId, keyword, pageable);
         } else if (questionType != null && hasKeyword) {
             questions = questionRepository.findByQuestionTypeAndQuestionTextContainingIgnoreCase(
                     questionType, keyword, pageable);

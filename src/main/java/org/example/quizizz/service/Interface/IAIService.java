@@ -7,5 +7,5 @@ public interface IAIService {
     /**
      * Tạo câu hỏi và đáp án từ mô tả tự nhiên
      */
-    AIGenerateResponse generateQuestionsFromNaturalLanguage(Long topicId, String userPrompt);
+    AIGenerateResponse generateQuestionsFromNaturalLanguage(Long topicId, Long examId, String userPrompt);
 }

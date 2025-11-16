@@ -32,6 +32,9 @@ public class Room implements Serializable {
     @Column(name = "topic_id", nullable = false)
     private Long topicId;
 
+    @Column(name = "exam_id", nullable = false)
+    private Long examId;
+
     @Column(name = "is_private")
     private Boolean isPrivate;
 

@@ -18,6 +18,8 @@ public class RoomResponse {
     private RoomMode roomMode;
     private Long topicId;
     private String topicName;
+    private Long examId;
+    private String examTitle;
     private Boolean isPrivate;
     private Long ownerId;
     private String ownerUsername;

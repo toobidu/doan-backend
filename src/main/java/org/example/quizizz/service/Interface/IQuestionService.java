@@ -7,9 +7,9 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface IQuestionService {
-    List<QuestionWithAnswersResponse> getRandomQuestionsWithAnswers(Long topicId, String questionType, int count);
-    List<QuestionWithAnswersResponse> getRandomQuestionsForPlayer(Long topicId, String questionType, int count, Long playerId);
-    long countAvailableQuestions(Long topicId, String questionType);
+    List<QuestionWithAnswersResponse> getRandomQuestionsWithAnswers(Long examId, String questionType, int count);
+    List<QuestionWithAnswersResponse> getRandomQuestionsForPlayer(Long examId, String questionType, int count, Long playerId);
+    long countAvailableQuestions(Long examId, String questionType);
 
     // CRUD operations
     QuestionResponse createQuestion(CreateQuestionRequest request);
@@ -18,6 +18,6 @@ public interface IQuestionService {
     void deleteQuestion(Long id);
     void deleteBulkQuestions(DeleteBulkQuestionsRequest request);
     QuestionResponse getQuestionById(Long id);
-    List<QuestionWithAnswersResponse> getQuestionsByTopicId(Long topicId);
-    Page<QuestionWithAnswersResponse> search(String keyword, Long topicId, String questionType, Pageable pageable);
+    List<QuestionWithAnswersResponse> getQuestionsByExamId(Long examId);
+    Page<QuestionWithAnswersResponse> search(String keyword, Long examId, String questionType, Pageable pageable);
 }

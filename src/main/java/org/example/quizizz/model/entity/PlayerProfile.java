@@ -8,7 +8,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "player_profiles")
@@ -28,11 +27,6 @@ public class PlayerProfile {
 
     @Column(name = "average_score", nullable = false)
     private Double averageScore;
-
-    @ElementCollection
-    @CollectionTable(name = "player_preferred_topics", joinColumns = @JoinColumn(name = "player_profile_id"))
-    @Column(name = "topic", nullable = false)
-    private List<String> preferredTopics;
 
     @Column(name = "total_play_time", nullable = false)
     private Integer totalPlayTime;

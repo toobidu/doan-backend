@@ -37,8 +37,8 @@ public class AIServiceImplement implements IAIService {
      * Tạo câu hỏi và đáp án từ mô tả tự nhiên
      */
     @Override
-    public AIGenerateResponse generateQuestionsFromNaturalLanguage(Long topicId, String userPrompt) {
-        log.info("Generating questions for topic {} with prompt: {}", topicId, userPrompt);
+    public AIGenerateResponse generateQuestionsFromNaturalLanguage(Long topicId, Long examId, String userPrompt) {
+        log.info("Generating questions for topic {} exam {} with prompt: {}", topicId, examId, userPrompt);
         
         TopicResponse topic = topicService.getById(topicId);
         String systemPrompt = buildSystemPrompt(topic, userPrompt);
@@ -51,7 +51,7 @@ public class AIServiceImplement implements IAIService {
         
         log.debug("AI Response: {}", jsonResponse);
         
-        List<QuestionWithAnswersResponse> questions = parseAndSaveQuestions(jsonResponse, topicId);
+        List<QuestionWithAnswersResponse> questions = parseAndSaveQuestions(jsonResponse, examId);
         
         return AIGenerateResponse.builder()
             .totalGenerated(questions.size())
@@ -123,7 +123,7 @@ public class AIServiceImplement implements IAIService {
     /**
      * Parse JSON từ AI và lưu vào database
      */
-    private List<QuestionWithAnswersResponse> parseAndSaveQuestions(String jsonResponse, Long topicId) {
+    private List<QuestionWithAnswersResponse> parseAndSaveQuestions(String jsonResponse, Long examId) {
         try {
             String cleanJson = jsonResponse
                 .replaceAll("```json\\n?", "")
@@ -135,7 +135,7 @@ public class AIServiceImplement implements IAIService {
             validateAIResponse(aiResponse);
             
             List<CreateQuestionRequest> questionRequests = aiResponse.getQuestions().stream()
-                .map(q -> new CreateQuestionRequest(q.getQuestionText(), topicId, "MULTIPLE_CHOICE"))
+                .map(q -> new CreateQuestionRequest(q.getQuestionText(), examId, "MULTIPLE_CHOICE"))
                 .toList();
             
             List<QuestionResponse> savedQuestions = questionService.createBulkQuestions(
@@ -151,7 +151,7 @@ public class AIServiceImplement implements IAIService {
                 answerService.createBulkAnswers(new CreateBulkAnswersRequest(answerRequests));
             }
             
-            return questionService.getQuestionsByTopicId(topicId);
+            return questionService.getQuestionsByExamId(examId);
             
         } catch (Exception e) {
             log.error("Error parsing AI response", e);
