@@ -14,6 +14,9 @@ public interface GameHistoryRepository extends JpaRepository<GameHistory, Long> 
 
     // Find all game histories by game session id
     List<GameHistory> findByGameSessionId(Long gameSessionId);
+    
+    // Check if history exists for user in game session
+    boolean existsByGameSessionIdAndUserId(Long gameSessionId, Long userId);
 
     // Get leaderboard data by topic
     @Query("SELECT gh.userId, AVG(gh.score) as avgScore, COUNT(gh) as gamesPlayed " +

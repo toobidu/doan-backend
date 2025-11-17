@@ -14,9 +14,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AIGenerateRequest {
     
-    @NotNull(message = "Topic ID không được để trống")
-    private Long topicId;
-    
     @NotNull(message = "Exam ID không được để trống")
     private Long examId;
     

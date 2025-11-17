@@ -19,7 +19,7 @@ public class CacheConfig {
             "roles", "role", 
             "permissions", "permission",
             "topics", "topic",
-            "questions", "question", "questionsByTopic",
+            "questions", "question", "questionsByTopic", "questionsByExam",
             "answers", "answer",
             "rooms", "room",
             "users", "user"

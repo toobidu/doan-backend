@@ -37,7 +37,6 @@ public class AIController {
             @RequestBody @Valid AIGenerateRequest request) {
         
         AIGenerateResponse response = aiServiceImpl.generateQuestionsFromNaturalLanguage(
-            request.getTopicId(),
             request.getExamId(),
             request.getUserPrompt()
         );

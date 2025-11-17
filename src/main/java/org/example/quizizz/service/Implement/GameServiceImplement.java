@@ -378,20 +378,30 @@ public class GameServiceImplement implements IGameService {
                 })
                 .collect(Collectors.toList());
 
-        // Lưu game history và cập nhật rank
+        // Lưu game history và cập nhật rank (FIXED: Kiểm tra duplicate)
         int totalQuestions = ((Number) sessionData.get("totalQuestions")).intValue();
         for (PlayerRanking ranking : rankings) {
-            GameHistory history = new GameHistory();
-            history.setGameSessionId(gameSessionId);
-            history.setUserId(ranking.getUserId());
-            history.setScore(ranking.getTotalScore().intValue());
+            // Kiểm tra xem đã có history chưa
+            boolean historyExists = gameHistoryRepository
+                .existsByGameSessionIdAndUserId(gameSessionId, ranking.getUserId());
+            
+            if (!historyExists) {
+                GameHistory history = new GameHistory();
+                history.setGameSessionId(gameSessionId);
+                history.setUserId(ranking.getUserId());
+                history.setScore(ranking.getTotalScore().intValue());
 
-            long correctCount = allAnswers.stream()
-                    .filter(a -> a.getUserId().equals(ranking.getUserId()) && a.getIsCorrect())
-                    .count();
-            history.setCorrectAnswers((int) correctCount);
-            history.setTotalQuestions(totalQuestions);
-            gameHistoryRepository.save(history);
+                long correctCount = allAnswers.stream()
+                        .filter(a -> a.getUserId().equals(ranking.getUserId()) && a.getIsCorrect())
+                        .count();
+                history.setCorrectAnswers((int) correctCount);
+                history.setTotalQuestions(totalQuestions);
+                gameHistoryRepository.save(history);
+                
+                log.info("Saved game history for user {} in session {}", ranking.getUserId(), gameSessionId);
+            } else {
+                log.info("Game history already exists for user {} in session {}", ranking.getUserId(), gameSessionId);
+            }
 
             rankService.updateRankAfterGame(
                     ranking.getUserId(),

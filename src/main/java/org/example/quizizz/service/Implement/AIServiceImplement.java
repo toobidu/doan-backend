@@ -11,10 +11,7 @@ import org.example.quizizz.model.dto.question.CreateQuestionRequest;
 import org.example.quizizz.model.dto.question.QuestionResponse;
 import org.example.quizizz.model.dto.question.QuestionWithAnswersResponse;
 import org.example.quizizz.model.dto.topic.TopicResponse;
-import org.example.quizizz.service.Interface.IAIService;
-import org.example.quizizz.service.Interface.IAnswerService;
-import org.example.quizizz.service.Interface.IQuestionService;
-import org.example.quizizz.service.Interface.ITopicService;
+import org.example.quizizz.service.Interface.*;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +26,7 @@ public class AIServiceImplement implements IAIService {
     
     private final ChatClient chatClient;
     private final ITopicService topicService;
+    private final IExamService examService;
     private final IQuestionService questionService;
     private final IAnswerService answerService;
     private final ObjectMapper objectMapper;
@@ -37,10 +35,11 @@ public class AIServiceImplement implements IAIService {
      * Tạo câu hỏi và đáp án từ mô tả tự nhiên
      */
     @Override
-    public AIGenerateResponse generateQuestionsFromNaturalLanguage(Long topicId, Long examId, String userPrompt) {
-        log.info("Generating questions for topic {} exam {} with prompt: {}", topicId, examId, userPrompt);
+    public AIGenerateResponse generateQuestionsFromNaturalLanguage(Long examId, String userPrompt) {
+        log.info("Generating questions for exam {} with prompt: {}", examId, userPrompt);
         
-        TopicResponse topic = topicService.getById(topicId);
+        var exam = examService.getById(examId);
+        TopicResponse topic = topicService.getById(exam.getTopicId());
         String systemPrompt = buildSystemPrompt(topic, userPrompt);
         
         String jsonResponse = chatClient.prompt()
