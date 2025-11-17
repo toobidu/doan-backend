@@ -122,6 +122,11 @@ public class ExamServiceImpl implements IExamService {
         });
     }
 
+    @Override
+    public long count() {
+        return examRepository.count();
+    }
+
     private ExamResponse toResponse(Exam exam, String topicName) {
         ExamResponse response = examMapper.toResponse(exam);
         response.setTopicName(topicName);

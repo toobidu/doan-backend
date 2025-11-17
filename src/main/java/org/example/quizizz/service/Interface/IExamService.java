@@ -16,4 +16,5 @@ public interface IExamService {
     List<ExamResponse> getAll();
     List<ExamResponse> getByTopicId(Long topicId);
     Page<ExamResponse> search(String keyword, Long topicId, Pageable pageable);
+    long count();
 }

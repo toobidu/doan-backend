@@ -90,4 +90,11 @@ public class ExamController {
                 examService.search(keyword, topicId, PageableUtil.createPageable(page, size, sort)));
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
     }
+
+    @GetMapping("/count")
+    @Operation(summary = "Đếm tổng số đề thi", description = "Đếm tổng số đề thi")
+    public ResponseEntity<ApiResponse<Long>> count() {
+        long count = examService.count();
+        return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, count));
+    }
 }
