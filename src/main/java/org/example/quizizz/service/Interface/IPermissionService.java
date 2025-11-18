@@ -12,4 +12,6 @@ public interface IPermissionService {
     void delete(Long id);
     PermissionResponse getById(Long id);
     List<PermissionResponse> getAll();
+    Long count();
+    org.springframework.data.domain.Page<PermissionResponse> searchPermissions(String keyword, org.springframework.data.domain.Pageable pageable);
 }

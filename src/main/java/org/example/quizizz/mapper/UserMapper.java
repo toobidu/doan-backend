@@ -3,6 +3,7 @@ package org.example.quizizz.mapper;
 import org.example.quizizz.model.dto.authentication.LoginResponse;
 import org.example.quizizz.model.dto.authentication.RegisterRequest;
 import org.example.quizizz.model.dto.authentication.RegisterResponse;
+import org.example.quizizz.model.dto.user.UserResponse;
 import org.example.quizizz.model.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -31,4 +32,6 @@ public interface UserMapper {
     @Mapping(target = "username", source = "user.username")
     @Mapping(target = "fullName", source = "user.fullName")
     LoginResponse toLoginResponse(User user, String accessToken, String refreshToken);
+
+    UserResponse toUserResponse(User user);
 }

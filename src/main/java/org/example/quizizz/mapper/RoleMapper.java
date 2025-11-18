@@ -8,6 +8,8 @@ import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public interface RoleMapper {
+    @Mapping(target = "createdAt", source = "createdAt")
+    @Mapping(target = "updatedAt", source = "updatedAt")
     RoleResponse toResponse(Role role);
 
     @BeanMapping(ignoreByDefault = true)

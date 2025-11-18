@@ -107,4 +107,11 @@ public class TopicController {
         PageResponse<TopicResponse> response = PageResponse.of(topicService.search(keyword, PageableUtil.createPageable(page, size, sort)));
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
     }
+
+    @Operation(summary = "Đếm số lượng topic", description = "Lấy tổng số lượng chủ đề trong hệ thống")
+    @GetMapping("/count")
+    public ResponseEntity<ApiResponse<Long>> count() {
+        Long count = topicService.count();
+        return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, count));
+    }
 }

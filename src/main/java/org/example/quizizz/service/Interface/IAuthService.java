@@ -11,4 +11,5 @@ public interface IAuthService {
     ChangePasswordResponse changePassword(Long userId, ChangePasswordRequest request);
     void logoutAllDevices(Long userId);
     boolean verifyEmail(String token);
+    Long countUsers();
 }

@@ -2,15 +2,18 @@ package org.example.quizizz.controller.api;
 
 import org.example.quizizz.common.config.ApiResponse;
 import org.example.quizizz.common.constants.MessageCode;
+import org.example.quizizz.model.dto.PageResponse;
 import org.example.quizizz.model.dto.permission.CreatePermissionRequest;
 import org.example.quizizz.model.dto.permission.PermissionResponse;
 import org.example.quizizz.model.dto.permission.UpdatePermissionRequest;
 import org.example.quizizz.service.Interface.IPermissionService;
+import org.example.quizizz.util.PageableUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -67,6 +70,25 @@ public class PermissionController {
     @PreAuthorize("hasAuthority('permission:manage')")
     public ResponseEntity<ApiResponse<List<PermissionResponse>>> getAll() {
         List<PermissionResponse> response = permissionService.getAll();
+        return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
+    }
+
+    @Operation(summary = "Đếm số lượng permission", description = "Lấy tổng số lượng quyền trong hệ thống")
+    @GetMapping("/count")
+    public ResponseEntity<ApiResponse<Long>> count() {
+        Long count = permissionService.count();
+        return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, count));
+    }
+
+    @Operation(summary = "Tìm kiếm permission", description = "Tìm kiếm và phân trang quyền")
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PageResponse<PermissionResponse>>> search(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id,desc") String sort) {
+        Page<PermissionResponse> permissions = permissionService.searchPermissions(keyword, PageableUtil.createPageable(page, size, sort));
+        PageResponse<PermissionResponse> response = PageResponse.of(permissions);
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
     }
 }

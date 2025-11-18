@@ -106,4 +106,21 @@ public class PermissionServiceImplement implements IPermissionService {
                 .map(permissionMapper::toResponse)
                 .toList();
     }
+
+    @Override
+    public Long count() {
+        return permissionRepository.count();
+    }
+
+    @Override
+    public org.springframework.data.domain.Page<PermissionResponse> searchPermissions(String keyword, org.springframework.data.domain.Pageable pageable) {
+        org.springframework.data.domain.Page<Permission> permissions;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            permissions = permissionRepository.findByPermissionNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
+                keyword, keyword, pageable);
+        } else {
+            permissions = permissionRepository.findAll(pageable);
+        }
+        return permissions.map(permissionMapper::toResponse);
+    }
 }

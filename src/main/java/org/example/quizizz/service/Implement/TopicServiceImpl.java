@@ -119,4 +119,9 @@ public class TopicServiceImpl implements ITopicService {
 
         return topics.map(topicMapper::toTopicResponse);
     }
+
+    @Override
+    public Long count() {
+        return topicRepository.count();
+    }
 }

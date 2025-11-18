@@ -2,6 +2,8 @@ package org.example.quizizz.repository;
 
 import org.example.quizizz.model.entity.Permission;
 import org.example.quizizz.model.entity.Role;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,4 +16,7 @@ import java.util.Set;
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
     Optional<Role> findByRoleName(String roleName);
+
+    Page<Role> findByRoleNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
+            String roleName, String description, Pageable pageable);
 }

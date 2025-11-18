@@ -337,4 +337,9 @@ public class AuthServiceImplement implements IAuthService {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public Long countUsers() {
+        return userRepository.count();
+    }
 }

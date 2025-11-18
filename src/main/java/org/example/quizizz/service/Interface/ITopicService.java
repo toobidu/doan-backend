@@ -15,4 +15,5 @@ public interface ITopicService {
     TopicResponse getById(Long id);
     List<TopicResponse> getAll();
     Page<TopicResponse> search(String keyword, Pageable pageable);
+    Long count();
 }

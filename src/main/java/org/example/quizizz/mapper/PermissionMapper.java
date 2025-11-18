@@ -15,6 +15,7 @@ public interface PermissionMapper {
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "permissionName", source = "permissionName")
     @Mapping(target = "description", source = "description")
+    @Mapping(target = "systemFlag", constant = "1")
     Permission toEntity(CreatePermissionRequest request);
 
     @BeanMapping(ignoreByDefault = true)
@@ -22,5 +23,7 @@ public interface PermissionMapper {
     @Mapping(target = "description", source = "description")
     void updateEntityFromDto(UpdatePermissionRequest dto, @MappingTarget Permission entity);
 
+    @Mapping(target = "createdAt", source = "createdAt")
+    @Mapping(target = "updatedAt", source = "updatedAt")
     PermissionResponse toResponse(Permission entity);
 }
