@@ -83,6 +83,7 @@ public class TopicController {
      */
     @Operation(summary = "Lấy tất cả chủ đề", description = "Lấy danh sách tất cả chủ đề không phân trang")
     @GetMapping
+    @PreAuthorize("hasAuthority('topic:manage')")
     public ResponseEntity<ApiResponse<List<TopicResponse>>> getAll() {
         List<TopicResponse> response = topicService.getAll();
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
@@ -98,6 +99,7 @@ public class TopicController {
      */
     @Operation(summary = "Tìm kiếm chủ đề", description = "Tìm kiếm và lọc chủ đề với phân trang")
     @GetMapping("/search")
+    @PreAuthorize("hasAuthority('topic:manage')")
     public ResponseEntity<ApiResponse<PageResponse<TopicResponse>>> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
@@ -110,6 +112,7 @@ public class TopicController {
 
     @Operation(summary = "Đếm số lượng topic", description = "Lấy tổng số lượng chủ đề trong hệ thống")
     @GetMapping("/count")
+    @PreAuthorize("hasAuthority('topic:manage')")
     public ResponseEntity<ApiResponse<Long>> count() {
         Long count = topicService.count();
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, count));

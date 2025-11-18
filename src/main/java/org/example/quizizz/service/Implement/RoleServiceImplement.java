@@ -3,13 +3,16 @@ package org.example.quizizz.service.Implement;
 import org.example.quizizz.common.constants.MessageCode;
 import org.example.quizizz.common.exception.ApiException;
 import org.example.quizizz.mapper.RoleMapper;
+import org.example.quizizz.model.dto.permission.PermissionResponse;
 import org.example.quizizz.model.dto.role.CreateRoleRequest;
 import org.example.quizizz.model.dto.role.RoleResponse;
 import org.example.quizizz.model.dto.role.UpdateRoleRequest;
 import org.example.quizizz.model.entity.Role;
 import org.example.quizizz.model.entity.Permission;
+import org.example.quizizz.model.entity.RolePermission;
 import org.example.quizizz.repository.RoleRepository;
 import org.example.quizizz.repository.PermissionRepository;
+import org.example.quizizz.repository.RolePermissionRepository;
 import org.example.quizizz.service.Interface.IRoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -27,6 +30,7 @@ public class RoleServiceImplement implements IRoleService {
 
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
+    private final RolePermissionRepository rolePermissionRepository;
     private final RoleMapper roleMapper;
 
     @Override
@@ -65,6 +69,11 @@ public class RoleServiceImplement implements IRoleService {
     public void delete(Long id) {
         Role role = roleRepository.findById(id)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), MessageCode.ROLE_NOT_FOUND, "Role not found"));
+        
+        if ("1".equals(role.getSystemFlag())) {
+            throw new ApiException(HttpStatus.FORBIDDEN.value(), MessageCode.OPERATION_NOT_ALLOWED, "Cannot delete system role");
+        }
+        
         roleRepository.delete(role);
     }
 
@@ -102,15 +111,24 @@ public class RoleServiceImplement implements IRoleService {
     }
 
     @Override
-    public List<org.example.quizizz.model.dto.permission.PermissionResponse> getRolePermissions(Long roleId) {
-        Role role = roleRepository.findById(roleId)
+    public List<PermissionResponse> getRolePermissions(Long roleId) {
+        roleRepository.findById(roleId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), MessageCode.ROLE_NOT_FOUND, "Role not found"));
-        return role.getPermissions().stream()
+        
+        List<RolePermission> rolePermissions = rolePermissionRepository.findByRoleId(roleId);
+        List<Long> permissionIds = rolePermissions.stream().map(RolePermission::getPermissionId).toList();
+        
+        if (permissionIds.isEmpty()) {
+            return List.of();
+        }
+        
+        return permissionRepository.findAllById(permissionIds).stream()
                 .map(permission -> {
-                    org.example.quizizz.model.dto.permission.PermissionResponse response = new org.example.quizizz.model.dto.permission.PermissionResponse();
+                    PermissionResponse response = new PermissionResponse();
                     response.setId(permission.getId());
                     response.setPermissionName(permission.getPermissionName());
                     response.setDescription(permission.getDescription());
+                    response.setSystemFlag(permission.getSystemFlag());
                     response.setCreatedAt(permission.getCreatedAt());
                     response.setUpdatedAt(permission.getUpdatedAt());
                     return response;
@@ -122,11 +140,11 @@ public class RoleServiceImplement implements IRoleService {
     @Transactional
     @CacheEvict(value = {"roles", "role"}, allEntries = true)
     public void updateRolePermissions(Long roleId, List<Long> permissionIds) {
-        Role role = roleRepository.findById(roleId)
+        roleRepository.findById(roleId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), MessageCode.ROLE_NOT_FOUND, "Role not found"));
         
         // Clear existing permissions
-        role.getPermissions().clear();
+        rolePermissionRepository.deleteByRoleId(roleId);
         
         // Add new permissions if provided
         if (permissionIds != null && !permissionIds.isEmpty()) {
@@ -134,9 +152,17 @@ public class RoleServiceImplement implements IRoleService {
             if (permissions.size() != permissionIds.size()) {
                 throw new ApiException(HttpStatus.NOT_FOUND.value(), MessageCode.PERMISSION_NOT_FOUND, "Some permissions not found");
             }
-            role.getPermissions().addAll(permissions);
+            
+            List<RolePermission> rolePermissions = permissionIds.stream()
+                    .map(permissionId -> {
+                        RolePermission rp = new RolePermission();
+                        rp.setRoleId(roleId);
+                        rp.setPermissionId(permissionId);
+                        return rp;
+                    })
+                    .toList();
+            
+            rolePermissionRepository.saveAll(rolePermissions);
         }
-        
-        roleRepository.save(role);
     }
 }

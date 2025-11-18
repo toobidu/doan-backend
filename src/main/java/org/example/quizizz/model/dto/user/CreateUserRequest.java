@@ -2,6 +2,7 @@ package org.example.quizizz.model.dto.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -39,8 +40,11 @@ public class CreateUserRequest {
     private LocalDate dob;
     
     private String avatarURL;
+
+    @NotNull(message = "Loại tài khoản không được để trống")
+    private String typeAccount;
     
-    private String typeAccount = "USER";
+    private String systemFlag = "0";
     
-    private Long roleId;
+    private Boolean emailVerified = false;
 }

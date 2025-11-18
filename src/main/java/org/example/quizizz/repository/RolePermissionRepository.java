@@ -13,6 +13,11 @@ import java.util.Set;
 @Repository
 public interface RolePermissionRepository extends JpaRepository<RolePermission, Long> {
     
+    List<RolePermission> findByRoleId(Long roleId);
+    
+    @Modifying
+    void deleteByRoleId(Long roleId);
+    
     @Query("SELECT rp FROM RolePermission rp WHERE rp.roleId = :roleId AND rp.permissionId IN :permissionIds")
     List<RolePermission> findByRoleIdAndPermissionIdIn(@Param("roleId") Long roleId, @Param("permissionIds") Set<Long> permissionIds);
     

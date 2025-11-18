@@ -79,6 +79,11 @@ public class PermissionServiceImplement implements IPermissionService {
     public void delete(Long id) {
         Permission permission = permissionRepository.findById(id)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), MessageCode.PERMISSION_NOT_FOUND, "Permission not found"));
+        
+        if ("1".equals(permission.getSystemFlag())) {
+            throw new ApiException(HttpStatus.FORBIDDEN.value(), MessageCode.OPERATION_NOT_ALLOWED, "Cannot delete system permission");
+        }
+        
         permissionRepository.delete(permission);
     }
 

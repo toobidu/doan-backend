@@ -38,6 +38,4 @@ public class UpdateUserRequest {
     private String typeAccount;
     
     private Boolean emailVerified;
-    
-    private Long roleId;
 }

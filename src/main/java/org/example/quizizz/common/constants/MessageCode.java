@@ -11,6 +11,7 @@ public enum MessageCode {
     FORBIDDEN("403", "Access forbidden"),
     NOT_FOUND("404", "Resource not found"),
     BAD_REQUEST("400", "Bad request"),
+    OPERATION_NOT_ALLOWED("403", "Operation not allowed"),
     
     USER_CREATED("201", "User created successfully"),
     USER_NOT_FOUND("404", "User not found"),
@@ -75,6 +76,8 @@ public enum MessageCode {
     GAME_STARTED("200", "Game started successfully"),
     PLAYER_LEFT_GAME("200", "Player left game successfully"),
     PLAYER_KICKED("200", "Player kicked successfully"),
+    
+    SYSTEM_RESOURCE_PROTECTED("403", "Cannot modify or delete system resource"),
     
     NOT_IMPLEMENTED("501", "Feature not implemented yet");
 

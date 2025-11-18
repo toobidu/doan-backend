@@ -10,4 +10,6 @@ public class CreatePermissionRequest {
 
     @NotBlank(message = "Description is required")
     private String description;
+    
+    private String systemFlag = "0";
 }

@@ -8,6 +8,7 @@ public class RoleResponse {
     private Long id;
     private String roleName;
     private String description;
+    private String systemFlag;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

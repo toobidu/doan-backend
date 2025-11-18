@@ -25,6 +25,7 @@ public class UserResponse {
     private Boolean online;
     private LocalDateTime lastOnlineTime;
     private Boolean emailVerified;
+    private String systemFlag;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<RoleResponse> roles;

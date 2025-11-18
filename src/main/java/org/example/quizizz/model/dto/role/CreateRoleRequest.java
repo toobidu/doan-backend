@@ -9,4 +9,6 @@ public class CreateRoleRequest {
     private String roleName;
 
     private String description;
+    
+    private String systemFlag = "0";
 }

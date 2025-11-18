@@ -9,8 +9,10 @@ import org.example.quizizz.model.dto.user.UpdateUserRequest;
 import org.example.quizizz.model.dto.user.UserResponse;
 import org.example.quizizz.model.entity.Role;
 import org.example.quizizz.model.entity.User;
+import org.example.quizizz.model.entity.UserRole;
 import org.example.quizizz.repository.RoleRepository;
 import org.example.quizizz.repository.UserRepository;
+import org.example.quizizz.repository.UserRoleRepository;
 import org.example.quizizz.service.Interface.IUserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +30,7 @@ public class UserServiceImplement implements IUserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final UserRoleRepository userRoleRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -73,19 +76,22 @@ public class UserServiceImplement implements IUserService {
         user.setDob(request.getDob());
         user.setAvatarURL(request.getAvatarURL());
         user.setTypeAccount(request.getTypeAccount());
-        user.setEmailVerified(false);
+        user.setSystemFlag(request.getSystemFlag() != null ? request.getSystemFlag() : "0");
+        user.setEmailVerified(request.getEmailVerified() != null ? request.getEmailVerified() : false);
         user.setOnline(false);
 
-        // Assign role if provided
-        if (request.getRoleId() != null) {
-            Role role = roleRepository.findById(request.getRoleId())
-                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), MessageCode.ROLE_NOT_FOUND, "Role not found"));
-            Set<Role> roles = new HashSet<>();
-            roles.add(role);
-            user.setRoles(roles);
-        }
-
         User savedUser = userRepository.save(user);
+        
+        // Tự động gán role dựa trên typeAccount
+        String roleName = request.getTypeAccount().toUpperCase();
+        Role role = roleRepository.findByRoleName(roleName)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), MessageCode.ROLE_NOT_FOUND, "Role " + roleName + " not found"));
+        
+        UserRole userRole = new UserRole();
+        userRole.setUserId(savedUser.getId());
+        userRole.setRoleId(role.getId());
+        userRoleRepository.save(userRole);
+        
         return userMapper.toUserResponse(savedUser);
     }
 
@@ -136,19 +142,24 @@ public class UserServiceImplement implements IUserService {
         
         if (request.getTypeAccount() != null) {
             user.setTypeAccount(request.getTypeAccount());
+            
+            // Tự động cập nhật role khi thay đổi typeAccount
+            String roleName = request.getTypeAccount().toUpperCase();
+            Role role = roleRepository.findByRoleName(roleName)
+                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), MessageCode.ROLE_NOT_FOUND, "Role " + roleName + " not found"));
+            
+            // Xóa role cũ
+            userRoleRepository.deleteByUserId(id);
+            
+            // Gán role mới
+            UserRole userRole = new UserRole();
+            userRole.setUserId(id);
+            userRole.setRoleId(role.getId());
+            userRoleRepository.save(userRole);
         }
         
         if (request.getEmailVerified() != null) {
             user.setEmailVerified(request.getEmailVerified());
-        }
-
-        // Update role if provided
-        if (request.getRoleId() != null) {
-            Role role = roleRepository.findById(request.getRoleId())
-                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), MessageCode.ROLE_NOT_FOUND, "Role not found"));
-            Set<Role> roles = new HashSet<>();
-            roles.add(role);
-            user.setRoles(roles);
         }
 
         User savedUser = userRepository.save(user);
@@ -160,6 +171,10 @@ public class UserServiceImplement implements IUserService {
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), MessageCode.USER_NOT_FOUND, "User not found"));
+        
+        if ("1".equals(user.getSystemFlag())) {
+            throw new ApiException(HttpStatus.FORBIDDEN.value(), MessageCode.OPERATION_NOT_ALLOWED, "Cannot delete system user");
+        }
         
         userRepository.delete(user);
     }

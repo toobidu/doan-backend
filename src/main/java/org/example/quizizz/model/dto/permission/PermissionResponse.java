@@ -12,6 +12,7 @@ public class PermissionResponse {
     private Long id;
     private String permissionName;
     private String description;
+    private String systemFlag;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

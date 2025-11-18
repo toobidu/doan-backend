@@ -53,6 +53,7 @@ public class UserController {
 
     @Operation(summary = "Đếm số lượng user", description = "Lấy tổng số lượng người dùng trong hệ thống")
     @GetMapping("/count")
+    @PreAuthorize("hasAuthority('user:manage')")
     public ResponseEntity<ApiResponse<Long>> count() {
         Long count = authService.countUsers();
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, count));
@@ -60,6 +61,7 @@ public class UserController {
 
     @Operation(summary = "Tìm kiếm user", description = "Tìm kiếm và phân trang người dùng")
     @GetMapping("/search")
+    @PreAuthorize("hasAuthority('user:manage')")
     public ResponseEntity<ApiResponse<PageResponse<UserResponse>>> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
@@ -72,6 +74,7 @@ public class UserController {
 
     @Operation(summary = "Lấy user theo ID", description = "Lấy thông tin chi tiết người dùng theo ID")
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('user:manage')")
     public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
         UserResponse user = userService.getUserById(id);
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, user));

@@ -121,6 +121,10 @@ public class AuthServiceImplement implements IAuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new ApiException(HttpStatus.UNAUTHORIZED.value(), MessageCode.AUTH_PASSWORD_INCORRECT, "Incorrect password");
         }
+        
+        if (!user.getEmailVerified()) {
+            throw new ApiException(HttpStatus.FORBIDDEN.value(), MessageCode.AUTH_EMAIL_NOT_VERIFIED, "Email not verified. Please check your email to verify your account.");
+        }
         user.setOnline(true);
         userRepository.save(user);
         redisService.setUserOnline(user.getId());
