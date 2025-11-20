@@ -97,4 +97,30 @@ public class ExamController {
         long count = examService.count();
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, count));
     }
+
+    @GetMapping("/my-exams")
+    @PreAuthorize("hasAuthority('topic:manage')")
+    @Operation(summary = "Lấy đề thi của teacher", description = "Lấy danh sách đề thi do teacher hiện tại tạo")
+    public ResponseEntity<ApiResponse<List<ExamResponse>>> getMyExams(Authentication authentication) {
+        Long teacherId = (Long) authentication.getPrincipal();
+        List<ExamResponse> response = examService.getByTeacherId(teacherId);
+        return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
+    }
+
+    @GetMapping("/my-exams/search")
+    @PreAuthorize("hasAuthority('topic:manage')")
+    @Operation(summary = "Tìm kiếm đề thi của teacher", description = "Tìm kiếm và lọc đề thi do teacher hiện tại tạo")
+    public ResponseEntity<ApiResponse<PageResponse<ExamResponse>>> searchMyExams(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long topicId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id,desc") String sort,
+            Authentication authentication) {
+
+        Long teacherId = (Long) authentication.getPrincipal();
+        PageResponse<ExamResponse> response = PageResponse.of(
+                examService.searchByTeacher(keyword, topicId, teacherId, PageableUtil.createPageable(page, size, sort)));
+        return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
+    }
 }

@@ -17,4 +17,8 @@ public interface IExamService {
     List<ExamResponse> getByTopicId(Long topicId);
     Page<ExamResponse> search(String keyword, Long topicId, Pageable pageable);
     long count();
+    
+    // Methods mới cho teacher
+    List<ExamResponse> getByTeacherId(Long teacherId);
+    Page<ExamResponse> searchByTeacher(String keyword, Long topicId, Long teacherId, Pageable pageable);
 }

@@ -127,6 +127,39 @@ public class ExamServiceImpl implements IExamService {
         return examRepository.count();
     }
 
+    @Override
+    public List<ExamResponse> getByTeacherId(Long teacherId) {
+        return examRepository.findByTeacherId(teacherId).stream()
+            .map(exam -> {
+                Topic topic = topicRepository.findById(exam.getTopicId()).orElse(null);
+                return toResponse(exam, topic != null ? topic.getName() : null);
+            })
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<ExamResponse> searchByTeacher(String keyword, Long topicId, Long teacherId, Pageable pageable) {
+        Page<Exam> exams;
+
+        if (teacherId != null && topicId != null && keyword != null && !keyword.trim().isEmpty()) {
+            exams = examRepository.findByTeacherIdAndTopicIdAndTitleContainingIgnoreCase(teacherId, topicId, keyword, pageable);
+        } else if (teacherId != null && topicId != null) {
+            exams = examRepository.findByTeacherIdAndTopicId(teacherId, topicId, pageable);
+        } else if (teacherId != null && keyword != null && !keyword.trim().isEmpty()) {
+            exams = examRepository.findByTeacherIdAndTitleContainingIgnoreCase(teacherId, keyword, pageable);
+        } else if (teacherId != null) {
+            exams = examRepository.findByTeacherId(teacherId, pageable);
+        } else {
+            // Nếu không có teacherId (Admin), lấy tất cả
+            return search(keyword, topicId, pageable);
+        }
+
+        return exams.map(exam -> {
+            Topic topic = topicRepository.findById(exam.getTopicId()).orElse(null);
+            return toResponse(exam, topic != null ? topic.getName() : null);
+        });
+    }
+
     private ExamResponse toResponse(Exam exam, String topicName) {
         ExamResponse response = examMapper.toResponse(exam);
         response.setTopicName(topicName);

@@ -15,4 +15,11 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
     Page<Exam> findByTitleContainingIgnoreCase(String keyword, Pageable pageable);
     Page<Exam> findByTopicIdAndTitleContainingIgnoreCase(Long topicId, String keyword, Pageable pageable);
     void deleteByTopicId(Long topicId);
+    
+    // Lọc theo teacherId
+    List<Exam> findByTeacherId(Long teacherId);
+    Page<Exam> findByTeacherId(Long teacherId, Pageable pageable);
+    Page<Exam> findByTeacherIdAndTitleContainingIgnoreCase(Long teacherId, String keyword, Pageable pageable);
+    Page<Exam> findByTeacherIdAndTopicId(Long teacherId, Long topicId, Pageable pageable);
+    Page<Exam> findByTeacherIdAndTopicIdAndTitleContainingIgnoreCase(Long teacherId, Long topicId, String keyword, Pageable pageable);
 }
