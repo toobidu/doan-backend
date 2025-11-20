@@ -3,10 +3,12 @@ target/
 .mvn/
 mvnw
 mvnw.cmd
-*.md
 .git
 .gitignore
+README.md
+*.md
 .idea
+.vscode
 *.iml
 *.log
 .DS_Store

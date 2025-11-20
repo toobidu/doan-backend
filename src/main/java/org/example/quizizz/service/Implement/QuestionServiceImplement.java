@@ -29,6 +29,12 @@ public class QuestionServiceImplement implements IQuestionService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final QuestionMapper questionMapper;
+    private final org.example.quizizz.repository.ExamRepository examRepository;
+    
+    @Override
+    public org.example.quizizz.repository.ExamRepository getExamRepository() {
+        return examRepository;
+    }
 
     @Override
     public List<QuestionWithAnswersResponse> getRandomQuestionsWithAnswers(Long examId, String questionType, int count) {
@@ -176,5 +182,53 @@ public class QuestionServiceImplement implements IQuestionService {
         }
         
         return questions.map(this::mapToQuestionWithAnswers);
+    }
+
+    @Override
+    public org.example.quizizz.model.dto.PageResponse<QuestionWithAnswersResponse> searchByTeacher(
+            String keyword, Long examId, String questionType, Long teacherId, Pageable pageable) {
+        
+        // Lấy danh sách examIds của teacher
+        java.util.List<Long> teacherExamIds = examRepository.findByTeacherId(teacherId)
+            .stream()
+            .map(org.example.quizizz.model.entity.Exam::getId)
+            .collect(Collectors.toList());
+        
+        if (teacherExamIds.isEmpty()) {
+            return new org.example.quizizz.model.dto.PageResponse<>(
+                java.util.Collections.emptyList(), pageable.getPageNumber(), pageable.getPageSize(), 0, 0, true, true
+            );
+        }
+        
+        // Filter questions theo examIds của teacher
+        org.springframework.data.domain.Page<Question> allQuestions = questionRepository.findAll(pageable);
+        
+        java.util.List<QuestionWithAnswersResponse> filteredQuestions = allQuestions.getContent().stream()
+            .filter(q -> q.getExamId() != null && teacherExamIds.contains(q.getExamId()))
+            .filter(q -> examId == null || q.getExamId().equals(examId))
+            .filter(q -> questionType == null || questionType.equals(q.getQuestionType()))
+            .filter(q -> keyword == null || keyword.trim().isEmpty() || 
+                q.getQuestionText().toLowerCase().contains(keyword.toLowerCase()))
+            .map(this::mapToQuestionWithAnswers)
+            .collect(Collectors.toList());
+        
+        // Tính toán pagination thủ công
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filteredQuestions.size());
+        java.util.List<QuestionWithAnswersResponse> pageContent = 
+            start < filteredQuestions.size() ? filteredQuestions.subList(start, end) : java.util.Collections.emptyList();
+        
+        int totalElements = filteredQuestions.size();
+        int totalPages = (int) Math.ceil((double) totalElements / pageable.getPageSize());
+        
+        return new org.example.quizizz.model.dto.PageResponse<>(
+            pageContent,
+            pageable.getPageNumber(),
+            pageable.getPageSize(),
+            totalElements,
+            totalPages,
+            pageable.getPageNumber() == 0,
+            pageable.getPageNumber() >= totalPages - 1
+        );
     }
 }

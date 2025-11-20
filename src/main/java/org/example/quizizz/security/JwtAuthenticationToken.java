@@ -8,10 +8,12 @@ import java.util.Collection;
 public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
     private final Long userId;
+    private final String typeAccount;
 
-    public JwtAuthenticationToken(Long userId, Collection<? extends GrantedAuthority> authorities) {
+    public JwtAuthenticationToken(Long userId, String typeAccount, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.userId = userId;
+        this.typeAccount = typeAccount;
         setAuthenticated(true);
     }
 
@@ -23,5 +25,9 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
     @Override
     public Object getPrincipal() {
         return userId;
+    }
+
+    public String getTypeAccount() {
+        return typeAccount;
     }
 }

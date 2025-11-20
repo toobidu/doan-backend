@@ -1,6 +1,7 @@
 package org.example.quizizz.service.Interface;
 
 import org.example.quizizz.model.dto.question.*;
+import org.example.quizizz.repository.ExamRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -20,4 +21,7 @@ public interface IQuestionService {
     QuestionResponse getQuestionById(Long id);
     List<QuestionWithAnswersResponse> getQuestionsByExamId(Long examId);
     Page<QuestionWithAnswersResponse> search(String keyword, Long examId, String questionType, Pageable pageable);
+    org.example.quizizz.model.dto.PageResponse<QuestionWithAnswersResponse> searchByTeacher(String keyword, Long examId, String questionType, Long teacherId, Pageable pageable);
+    
+    ExamRepository getExamRepository();
 }

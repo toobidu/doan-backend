@@ -64,30 +64,59 @@ public class ExamController {
     }
 
     @GetMapping
-    @Operation(summary = "Lấy tất cả đề thi", description = "Lấy danh sách tất cả đề thi")
-    public ResponseEntity<ApiResponse<List<ExamResponse>>> getAll() {
-        List<ExamResponse> response = examService.getAll();
+    @Operation(summary = "Lấy tất cả đề thi", description = "Lấy danh sách tất cả đề thi (teacher chỉ xem của mình)")
+    public ResponseEntity<ApiResponse<List<ExamResponse>>> getAll(Authentication authentication) {
+        Long teacherId = (Long) authentication.getPrincipal();
+        org.example.quizizz.security.JwtAuthenticationToken auth = (org.example.quizizz.security.JwtAuthenticationToken) authentication;
+        String typeAccount = auth.getTypeAccount();
+        
+        List<ExamResponse> response;
+        if ("TEACHER".equals(typeAccount)) {
+            response = examService.getByTeacherId(teacherId);
+        } else {
+            response = examService.getAll();
+        }
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
     }
 
     @GetMapping("/topic/{topicId}")
-    @Operation(summary = "Lấy đề thi theo chủ đề", description = "Lấy danh sách đề thi thuộc một chủ đề")
-    public ResponseEntity<ApiResponse<List<ExamResponse>>> getByTopicId(@PathVariable Long topicId) {
+    @Operation(summary = "Lấy đề thi theo chủ đề", description = "Lấy danh sách đề thi thuộc một chủ đề (teacher chỉ xem của mình)")
+    public ResponseEntity<ApiResponse<List<ExamResponse>>> getByTopicId(@PathVariable Long topicId, Authentication authentication) {
+        Long teacherId = (Long) authentication.getPrincipal();
+        org.example.quizizz.security.JwtAuthenticationToken auth = (org.example.quizizz.security.JwtAuthenticationToken) authentication;
+        String typeAccount = auth.getTypeAccount();
+        
         List<ExamResponse> response = examService.getByTopicId(topicId);
+        if ("TEACHER".equals(typeAccount)) {
+            response = response.stream()
+                .filter(exam -> exam.getTeacherId() != null && exam.getTeacherId().equals(teacherId))
+                .collect(java.util.stream.Collectors.toList());
+        }
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
     }
 
     @GetMapping("/search")
-    @Operation(summary = "Tìm kiếm đề thi", description = "Tìm kiếm và lọc đề thi với phân trang")
+    @Operation(summary = "Tìm kiếm đề thi", description = "Tìm kiếm và lọc đề thi với phân trang (teacher chỉ xem của mình)")
     public ResponseEntity<ApiResponse<PageResponse<ExamResponse>>> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long topicId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id,desc") String sort) {
+            @RequestParam(defaultValue = "id,desc") String sort,
+            Authentication authentication) {
 
-        PageResponse<ExamResponse> response = PageResponse.of(
+        Long teacherId = (Long) authentication.getPrincipal();
+        org.example.quizizz.security.JwtAuthenticationToken auth = (org.example.quizizz.security.JwtAuthenticationToken) authentication;
+        String typeAccount = auth.getTypeAccount();
+        
+        PageResponse<ExamResponse> response;
+        if ("TEACHER".equals(typeAccount)) {
+            response = PageResponse.of(
+                examService.searchByTeacher(keyword, topicId, teacherId, PageableUtil.createPageable(page, size, sort)));
+        } else {
+            response = PageResponse.of(
                 examService.search(keyword, topicId, PageableUtil.createPageable(page, size, sort)));
+        }
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
     }
 

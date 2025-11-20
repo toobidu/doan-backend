@@ -65,9 +65,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     return;
                 }
                 Long userId = jwtUtil.getUserIdFromToken(token);
+                String typeAccount = jwtUtil.getClaimFromToken(token, claims -> claims.get("typeAccount", String.class));
                 Collection<SimpleGrantedAuthority> authorities = getAuthoritiesFromRedis(userId);
 
-                JwtAuthenticationToken authentication = new JwtAuthenticationToken(userId, authorities);
+                JwtAuthenticationToken authentication = new JwtAuthenticationToken(userId, typeAccount, authorities);
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception e) {

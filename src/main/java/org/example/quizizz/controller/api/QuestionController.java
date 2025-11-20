@@ -106,7 +106,7 @@ public class QuestionController {
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
     }
 
-    @Operation(summary = "Lấy danh sách câu hỏi", description = "Lấy danh sách câu hỏi với phân trang, tìm kiếm và lọc theo topic, loại câu hỏi")
+    @Operation(summary = "Lấy danh sách câu hỏi", description = "Lấy danh sách câu hỏi với phân trang, tìm kiếm và lọc theo topic, loại câu hỏi (teacher chỉ xem của mình)")
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<QuestionWithAnswersResponse>>> getAll(
             @RequestParam(required = false) String keyword,
@@ -114,10 +114,22 @@ public class QuestionController {
             @RequestParam(required = false) String questionType,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id,desc") String sort) {
+            @RequestParam(defaultValue = "id,desc") String sort,
+            org.springframework.security.core.Authentication authentication) {
         
-        PageResponse<QuestionWithAnswersResponse> response = PageResponse.of(
+        Long userId = (Long) authentication.getPrincipal();
+        org.example.quizizz.security.JwtAuthenticationToken auth = (org.example.quizizz.security.JwtAuthenticationToken) authentication;
+        String typeAccount = auth.getTypeAccount();
+        
+        PageResponse<QuestionWithAnswersResponse> response;
+        
+        if ("TEACHER".equals(typeAccount)) {
+            response = questionService.searchByTeacher(keyword, examId, questionType, userId, PageableUtil.createPageable(page, size, sort));
+        } else {
+            response = PageResponse.of(
                 questionService.search(keyword, examId, questionType, PageableUtil.createPageable(page, size, sort)));
+        }
+        
         return ResponseEntity.ok(ApiResponse.success(MessageCode.SUCCESS, response));
     }
 }

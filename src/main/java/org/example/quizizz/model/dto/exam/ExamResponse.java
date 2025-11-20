@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class ExamResponse {
     private Long id;
     private Long topicId;
+    private Long teacherId;
     private String topicName;
     private String title;
     private String description;
