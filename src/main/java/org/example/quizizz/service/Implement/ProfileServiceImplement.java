@@ -125,22 +125,13 @@ public class ProfileServiceImplement implements IProfileService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new NoSuchElementException("User not found with id: " + userId));
         
-        String avatarURL = user.getAvatarURL();
-        if (avatarURL == null || avatarURL.isEmpty()) {
+        String fileName = user.getAvatarURL();
+        if (fileName == null || fileName.isEmpty()) {
             return null;
         }
         
-        // Tạo presigned URL mới để đảm bảo không hết hạn
-        String fileName = extractFileNameFromUrl(avatarURL);
+        // DB lưu tên file, cần tạo presigned URL
         return fileStorageService.getAvatarUrl(fileName);
-    }
-    
-    private String extractFileNameFromUrl(String url) {
-        if (url == null) return null;
-        // Extract filename from MinIO URL (before query parameters)
-        String[] parts = url.split("/");
-        String fileNameWithParams = parts[parts.length - 1];
-        return fileNameWithParams.split("\\?")[0]; // Remove query parameters
     }
     
     @Override

@@ -1,15 +1,42 @@
+# Build artifacts
 target/
-!target/*.jar
-.mvn/
-mvnw
-mvnw.cmd
-.git
+*.jar
+*.war
+*.ear
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
 .gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+*.dockerfile
+
+# Documentation
 README.md
 *.md
-.idea
-.vscode
-*.iml
+img*.png
+
+# Scripts
+*.sh
+*.bat
+
+# Logs
+logs/
 *.log
-.DS_Store
-node_modules/
+
+# Temporary files
+tmp/
+temp/

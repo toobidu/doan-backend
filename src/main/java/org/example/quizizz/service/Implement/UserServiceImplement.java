@@ -13,6 +13,7 @@ import org.example.quizizz.model.entity.UserRole;
 import org.example.quizizz.repository.RoleRepository;
 import org.example.quizizz.repository.UserRepository;
 import org.example.quizizz.repository.UserRoleRepository;
+import org.example.quizizz.service.Interface.IFileStorageService;
 import org.example.quizizz.service.Interface.IUserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +34,7 @@ public class UserServiceImplement implements IUserService {
     private final UserRoleRepository userRoleRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final IFileStorageService fileStorageService;
 
     @Override
     public Page<UserResponse> searchUsers(String keyword, Pageable pageable) {
@@ -43,14 +45,26 @@ public class UserServiceImplement implements IUserService {
         } else {
             users = userRepository.findAll(pageable);
         }
-        return users.map(userMapper::toUserResponse);
+        return users.map(this::convertToResponse);
+    }
+    
+    private UserResponse convertToResponse(User user) {
+        UserResponse response = userMapper.toUserResponse(user);
+        if (user.getAvatarURL() != null && !user.getAvatarURL().isEmpty()) {
+            try {
+                response.setAvatarURL(fileStorageService.getAvatarUrl(user.getAvatarURL()));
+            } catch (Exception e) {
+                response.setAvatarURL(null);
+            }
+        }
+        return response;
     }
 
     @Override
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), MessageCode.USER_NOT_FOUND, "User not found"));
-        return userMapper.toUserResponse(user);
+        return convertToResponse(user);
     }
 
     @Override
@@ -92,7 +106,7 @@ public class UserServiceImplement implements IUserService {
         userRole.setRoleId(role.getId());
         userRoleRepository.save(userRole);
         
-        return userMapper.toUserResponse(savedUser);
+        return convertToResponse(savedUser);
     }
 
     @Override
@@ -163,7 +177,7 @@ public class UserServiceImplement implements IUserService {
         }
 
         User savedUser = userRepository.save(user);
-        return userMapper.toUserResponse(savedUser);
+        return convertToResponse(savedUser);
     }
 
     @Override

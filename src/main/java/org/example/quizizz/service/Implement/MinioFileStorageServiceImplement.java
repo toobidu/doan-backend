@@ -1,12 +1,14 @@
 package org.example.quizizz.service.Implement;
 
+import org.example.quizizz.common.config.MinioConfig;
 import org.example.quizizz.service.Interface.IFileStorageService;
 import io.minio.*;
 import io.minio.errors.MinioException;
 import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,16 +27,12 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class MinioFileStorageServiceImplement implements IFileStorageService {
 
-    private final MinioClient minioClient;
+    private final MinioClient internalMinioClient;
+    private final MinioConfig minioConfig;
 
-    @Value("${minio.avatar-bucket}")
-    private String avatarBucket;
-
-    @Value("${minio.image-bucket}")
-    private String imageBucket;
-
-    @Value("${minio.endpoint}")
-    private String endpoint;
+    @Autowired
+    @Qualifier("publicMinioClient")
+    private MinioClient publicMinioClient;
 
     /**
      * Upload avatar cho người dùng lên MinIO.
@@ -48,17 +46,15 @@ public class MinioFileStorageServiceImplement implements IFileStorageService {
         log.info("Starting avatar upload for user: {}, file size: {} bytes", userId, file.getSize());
 
         try {
-            // Kiểm tra kết nối MinIO trước
             testMinioConnection();
-
-            ensureBucketExists(avatarBucket);
+            ensureBucketExists(minioConfig.getAvatarBucket());
             String fileName = "avatar_" + userId + "_" + UUID.randomUUID().toString().substring(0, 8) + getFileExtension(file.getOriginalFilename());
 
-            log.info("Uploading avatar file: {} to bucket: {}", fileName, avatarBucket);
+            log.info("Uploading avatar file: {} to bucket: {}", fileName, minioConfig.getAvatarBucket());
 
-            minioClient.putObject(
+            internalMinioClient.putObject(
                     PutObjectArgs.builder()
-                            .bucket(avatarBucket)
+                            .bucket(minioConfig.getAvatarBucket())
                             .object(fileName)
                             .stream(file.getInputStream(), file.getSize(), -1)
                             .contentType(file.getContentType())
@@ -66,7 +62,7 @@ public class MinioFileStorageServiceImplement implements IFileStorageService {
             );
 
             log.info("Successfully uploaded avatar: {} for user: {}", fileName, userId);
-            return fileName; // Trả về tên file thay vì presigned URL
+            return fileName;
 
         } catch (MinioException e) {
             log.error("MinIO error during avatar upload for user {}: {}", userId, e.getMessage(), e);
@@ -88,12 +84,11 @@ public class MinioFileStorageServiceImplement implements IFileStorageService {
      */
     private void testMinioConnection() throws Exception {
         try {
-            // Test connection bằng cách list buckets
-            minioClient.listBuckets();
+            internalMinioClient.listBuckets();
             log.debug("MinIO connection test successful");
         } catch (Exception e) {
             log.error("MinIO connection test failed: {}", e.getMessage());
-            throw new Exception("Cannot connect to MinIO server at " + endpoint + ". Check if MinIO is running and credentials are correct.", e);
+            throw new Exception("Cannot connect to MinIO server at " + minioConfig.getEndpoint() + ". Check if MinIO is running and credentials are correct.", e);
         }
     }
 
@@ -106,19 +101,19 @@ public class MinioFileStorageServiceImplement implements IFileStorageService {
      */
     @Override
     public String uploadQuizImage(MultipartFile file, Long quizId) throws Exception {
-        ensureBucketExists(imageBucket);
+        ensureBucketExists(minioConfig.getImageBucket());
         String fileName = "quiz_" + quizId + "_" + UUID.randomUUID().toString().substring(0, 8) + getFileExtension(file.getOriginalFilename());
 
-        minioClient.putObject(
+        internalMinioClient.putObject(
                 PutObjectArgs.builder()
-                        .bucket(imageBucket)
+                        .bucket(minioConfig.getImageBucket())
                         .object(fileName)
                         .stream(file.getInputStream(), file.getSize(), -1)
                         .contentType(file.getContentType())
                         .build()
         );
 
-        return getPresignedUrl(imageBucket, fileName);
+        return getPresignedUrl(minioConfig.getImageBucket(), fileName);
     }
 
     /**
@@ -129,7 +124,7 @@ public class MinioFileStorageServiceImplement implements IFileStorageService {
      */
     @Override
     public void deleteFile(String bucketName, String fileName) throws Exception {
-        minioClient.removeObject(
+        internalMinioClient.removeObject(
                 RemoveObjectArgs.builder()
                         .bucket(bucketName)
                         .object(fileName)
@@ -144,7 +139,7 @@ public class MinioFileStorageServiceImplement implements IFileStorageService {
      */
     @Override
     public String getAvatarUrl(String fileName) throws Exception {
-        return getPresignedUrl(avatarBucket, fileName);
+        return getPresignedUrl(minioConfig.getAvatarBucket(), fileName);
     }
 
     /**
@@ -153,9 +148,9 @@ public class MinioFileStorageServiceImplement implements IFileStorageService {
      * @throws Exception Nếu lỗi MinIO
      */
     private void ensureBucketExists(String bucketName) throws Exception {
-        boolean found = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
+        boolean found = internalMinioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
         if (!found) {
-            minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+            internalMinioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
         }
     }
 
@@ -166,7 +161,7 @@ public class MinioFileStorageServiceImplement implements IFileStorageService {
      * @return Presigned URL có thời hạn 1 giờ
      */
     private String getPresignedUrl(String bucketName, String fileName) throws Exception {
-        return minioClient.getPresignedObjectUrl(
+        return publicMinioClient.getPresignedObjectUrl(
                 GetPresignedObjectUrlArgs.builder()
                         .method(Method.GET)
                         .bucket(bucketName)

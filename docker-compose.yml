@@ -1,44 +1,41 @@
-version: '3.8'
-
 services:
-  # PostgreSQL Database
+  # ==================== POSTGRESQL ====================
   postgres:
-    image: postgres:16-alpine
+    image: postgres:latest
     container_name: quizizz-postgres
     environment:
-      POSTGRES_DB: quiziz
-      POSTGRES_USER: demo
-      POSTGRES_PASSWORD: demo
-    ports:
-      - "5436:5432"
+      POSTGRES_DB: myapp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgresql
+      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - quizizz-network
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U demo"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d myapp"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
+    networks:
+      - quizizz-network
 
-  # Redis Cache
+  # ==================== REDIS ====================
   redis:
-    image: redis:7-alpine
+    image: redis:latest
     container_name: quizizz-redis
-    command: redis-server --requirepass demo
     ports:
-      - "6384:6379"
+      - "6379:6379"
     volumes:
       - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
     networks:
       - quizizz-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # MinIO Object Storage
+  # ==================== MINIO ====================
   minio:
     image: minio/minio:latest
     container_name: quizizz-minio
@@ -51,56 +48,60 @@ services:
       - "9001:9001"
     volumes:
       - minio_data:/data
+    restart: unless-stopped
     networks:
       - quizizz-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
 
-  # Quizizz Backend Application
-  quizizz-backend:
-    image: your-dockerhub-username/quizizz-backend:latest
+  # ==================== BACKEND ====================
+  backend:
+    image: toobidu/be:latest
     container_name: quizizz-backend
+    ports:
+      - "8080:8080"
+      - "9093:9093"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/myapp
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgresql
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_PUBLIC_ENDPOINT: http://localhost:9000
+      JWT_SECRET_KEY: 820370665f3840fdd097ddfef080afea0260702bc53f27901c61034467ab98a4d02962b5a058e6e297006f8849bf4686186f6f917f9471bcca4eaeca76c64cd4
+      JAVA_OPTS: "-Xms512m -Xmx1024m"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_healthy
+        condition: service_started
       minio:
-        condition: service_healthy
-    environment:
-      # Database
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/quiziz
-      SPRING_DATASOURCE_USERNAME: demo
-      SPRING_DATASOURCE_PASSWORD: demo
-      
-      # Redis
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
-      SPRING_DATA_REDIS_PASSWORD: demo
-      
-      # MinIO
-      MINIO_ENDPOINT: http://minio:9000
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin123
-      
-      # Application
-      SERVER_PORT: 8080
-      SOCKETIO_PORT: 9092
-    ports:
-      - "8080:8080"
-      - "9092:9092"
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
+    pull_policy: always
     networks:
       - quizizz-network
-    restart: unless-stopped
+
+  # ==================== FRONTEND ====================
+#  frontend:
+#    image: toobidu/fe:latest
+#    container_name: quizizz-frontend
+#    ports:
+#      - "3000:3000"
+#    restart: unless-stopped
+
+# ==================== VOLUMES ====================
+networks:
+  quizizz-network:
+    driver: bridge
 
 volumes:
   postgres_data:
   redis_data:
   minio_data:
-
-networks:
-  quizizz-network:
-    driver: bridge

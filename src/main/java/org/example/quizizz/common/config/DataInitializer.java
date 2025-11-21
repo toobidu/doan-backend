@@ -20,6 +20,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
+    private static final int MAX_RETRY = 3;
+    private static final long RETRY_DELAY_MS = 2000;
+
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
@@ -29,15 +32,29 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     @Transactional
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         log.info("Starting data initialization...");
-
-        initializePermissions();
-        initializeRoles();
-        initializeUsers();
-        assignRolePermissions();
-
-        log.info("Data initialization completed!");
+        
+        for (int i = 0; i < MAX_RETRY; i++) {
+            try {
+                initializePermissions();
+                initializeRoles();
+                initializeUsers();
+                assignRolePermissions();
+                log.info("Data initialization completed!");
+                return;
+            } catch (Exception e) {
+                log.warn("Initialization attempt {} failed: {}", i + 1, e.getMessage());
+                if (i < MAX_RETRY - 1) {
+                    try {
+                        Thread.sleep(RETRY_DELAY_MS);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
+        }
+        log.error("Data initialization failed after {} retries", MAX_RETRY);
     }
 
     private void initializePermissions() {

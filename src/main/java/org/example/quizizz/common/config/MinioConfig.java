@@ -1,46 +1,62 @@
 package org.example.quizizz.common.config;
 
 import io.minio.MinioClient;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Slf4j
 @Configuration
+@ConfigurationProperties(prefix = "minio")
+@Data
 public class MinioConfig {
 
-    @Value("${minio.endpoint}")
     private String endpoint;
-
-    @Value("${minio.access-key}")
+    private String publicEndpoint;
     private String accessKey;
-
-    @Value("${minio.secret-key}")
     private String secretKey;
+    private String imageBucket;
+    private String avatarBucket;
 
     /**
-     * Cấu hình MinIO client.
-     * @return MinIO client được cấu hình đầy đủ
+     * MinIO client cho thao tác nội bộ (upload, delete).
      */
     @Bean
-    public MinioClient minioClient() {
+    @Primary
+    public MinioClient internalMinioClient() {
         try {
-            log.info("Configuring MinIO client with endpoint: {}", endpoint);
-            log.info("Using access key: {}", accessKey.substring(0, Math.min(4, accessKey.length())) + "***");
-
-            MinioClient client = MinioClient.builder()
+            log.info("Configuring internal MinIO client with endpoint: {}", endpoint);
+            return MinioClient.builder()
                     .endpoint(endpoint)
                     .credentials(accessKey, secretKey)
-                    // Thêm region để tránh lỗi signature
                     .region("us-east-1")
                     .build();
-
-            log.info("MinIO client configured successfully");
-            return client;
         } catch (Exception e) {
-            log.error("Failed to configure MinIO client: {}", e.getMessage(), e);
+            log.error("Failed to configure internal MinIO client: {}", e.getMessage(), e);
             throw new RuntimeException("MinIO configuration failed", e);
+        }
+    }
+
+    /**
+     * MinIO client cho presigned URL (sử dụng public endpoint).
+     */
+    @Bean
+    @Qualifier("publicMinioClient")
+    public MinioClient publicMinioClient() {
+        try {
+            log.info("Configuring public MinIO client with endpoint: {}", publicEndpoint);
+            return MinioClient.builder()
+                    .endpoint(publicEndpoint)
+                    .credentials(accessKey, secretKey)
+                    .region("us-east-1")
+                    .build();
+        } catch (Exception e) {
+            log.error("Failed to configure public MinIO client: {}", e.getMessage(), e);
+            throw new RuntimeException("MinIO public client configuration failed", e);
         }
     }
 }

@@ -30,7 +30,7 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        String[] swaggerPaths = {
+        String[] publicPaths = {
                 "/swagger-ui.html",
                 "/swagger-ui/**",
                 "/v3/api-docs/**",
@@ -38,6 +38,7 @@ public class SecurityConfig {
                 "/v3/api-docs/swagger-config",
                 "/swagger-resources/**",
                 "/webjars/**",
+                "/actuator/**",
                 "/error"
         };
 
@@ -52,7 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/ws/info/**").permitAll()
                         // Swagger endpoints
-                        .requestMatchers(swaggerPaths).permitAll()
+                        .requestMatchers(publicPaths).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated())
                 // Thêm JWT filter

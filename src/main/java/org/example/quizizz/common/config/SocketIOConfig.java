@@ -28,7 +28,7 @@ public class SocketIOConfig {
         com.corundumstudio.socketio.Configuration config = new com.corundumstudio.socketio.Configuration();
         config.setHostname("0.0.0.0");
         config.setPort(port);
-        config.setOrigin("http://localhost:5173");
+        config.setOrigin("*");
 
         // Cấp phép quyền truy cập
         config.setTransports(com.corundumstudio.socketio.Transport.WEBSOCKET, com.corundumstudio.socketio.Transport.POLLING);
