@@ -6,7 +6,7 @@ spring:
     allow-circular-references: true
 
   datasource:
-    url: jdbc:postgresql://postgres:5432/myapp
+    url: jdbc:postgresql://20.2.232.7:5432/myapp
     username: postgres
     password: postgresql
 #    url: jdbc:postgresql://localhost:5436/quiziz
@@ -25,17 +25,9 @@ spring:
           time_zone: Asia/Ho_Chi_Minh
         format_sql: true
 
-  ai:
-    openai:
-      api-key: key
-#      base-url: https://api.openai.com
-      chat:
-        options:
-          model: gpt-4o-mini
-
   data:
     redis:
-      host: redis
+      host: 20.2.232.7
       port: 6379
       timeout: 2000ms
       lettuce:
@@ -66,6 +58,11 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
+
+openai:
+  api-key: ${KEY}
+  base-url: https://api.openai.com/v1
+  model: gpt-4o-mini
 
 server:
   port: 8080

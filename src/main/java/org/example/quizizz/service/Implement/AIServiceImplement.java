@@ -12,9 +12,10 @@ import org.example.quizizz.model.dto.question.QuestionResponse;
 import org.example.quizizz.model.dto.question.QuestionWithAnswersResponse;
 import org.example.quizizz.model.dto.topic.TopicResponse;
 import org.example.quizizz.service.Interface.*;
-import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
 
@@ -24,16 +25,16 @@ import java.util.List;
 @Transactional
 public class AIServiceImplement implements IAIService {
     
-    private final ChatClient chatClient;
+    private final RestClient openaiRestClient;
     private final ITopicService topicService;
     private final IExamService examService;
     private final IQuestionService questionService;
     private final IAnswerService answerService;
     private final ObjectMapper objectMapper;
     
-    /**
-     * Tạo câu hỏi và đáp án từ mô tả tự nhiên
-     */
+    @Value("${openai.model}")
+    private String model;
+    
     @Override
     public AIGenerateResponse generateQuestionsFromNaturalLanguage(Long examId, String userPrompt) {
         log.info("Generating questions for exam {} with prompt: {}", examId, userPrompt);
@@ -42,12 +43,28 @@ public class AIServiceImplement implements IAIService {
         TopicResponse topic = topicService.getById(exam.getTopicId());
         String systemPrompt = buildSystemPrompt(topic, userPrompt);
         
-        String jsonResponse = chatClient.prompt()
-            .system(systemPrompt)
-            .user(userPrompt)
-            .call()
-            .content();
+        OpenAIChatRequest request = OpenAIChatRequest.builder()
+                .model(model)
+                .temperature(0.7)
+                .messages(List.of(
+                        OpenAIChatRequest.Message.builder()
+                                .role("system")
+                                .content(systemPrompt)
+                                .build(),
+                        OpenAIChatRequest.Message.builder()
+                                .role("user")
+                                .content(userPrompt)
+                                .build()
+                ))
+                .build();
         
+        OpenAIChatResponse response = openaiRestClient.post()
+                .uri("/chat/completions")
+                .body(request)
+                .retrieve()
+                .body(OpenAIChatResponse.class);
+        
+        String jsonResponse = response.getChoices().get(0).getMessage().getContent();
         log.debug("AI Response: {}", jsonResponse);
         
         List<QuestionWithAnswersResponse> questions = parseAndSaveQuestions(jsonResponse, examId);
