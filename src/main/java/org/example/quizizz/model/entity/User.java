@@ -40,7 +40,7 @@ public class User extends BaseEntity {
     @Column(name = "dob")
     private LocalDate dob;
 
-    @Column(name = "avatar_url")
+    @Column(name = "avatar_url", columnDefinition = "TEXT")
     private String avatarURL;
 
     @Column(name = "type_account", nullable = false)

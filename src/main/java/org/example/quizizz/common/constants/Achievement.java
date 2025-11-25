@@ -1,4 +1,4 @@
-package org.example.quizizz.model.enums;
+package org.example.quizizz.common.constants;
 
 import lombok.Getter;
 import lombok.AllArgsConstructor;

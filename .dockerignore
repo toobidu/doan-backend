@@ -1,42 +1,15 @@
-# Build artifacts
+# Maven
 target/
-*.jar
-*.war
-*.ear
 
-# IDE files
+# IDE
 .idea/
-.vscode/
 *.iml
-*.ipr
-*.iws
+.vscode/
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
-
-# Git
-.git/
-.gitignore
-
-# Docker
-Dockerfile
-docker-compose.yml
-*.dockerfile
-
-# Documentation
-README.md
-*.md
-img*.png
-
-# Scripts
-*.sh
-*.bat
 
 # Logs
 logs/
 *.log
-
-# Temporary files
-tmp/
-temp/

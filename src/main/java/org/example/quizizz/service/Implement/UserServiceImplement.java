@@ -50,13 +50,7 @@ public class UserServiceImplement implements IUserService {
     
     private UserResponse convertToResponse(User user) {
         UserResponse response = userMapper.toUserResponse(user);
-        if (user.getAvatarURL() != null && !user.getAvatarURL().isEmpty()) {
-            try {
-                response.setAvatarURL(fileStorageService.getAvatarUrl(user.getAvatarURL()));
-            } catch (Exception e) {
-                response.setAvatarURL(null);
-            }
-        }
+        // avatarURL đã là presignedUrl, không cần convert
         return response;
     }
 

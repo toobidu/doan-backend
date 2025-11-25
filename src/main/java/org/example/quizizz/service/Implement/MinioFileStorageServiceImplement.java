@@ -38,7 +38,7 @@ public class MinioFileStorageServiceImplement implements IFileStorageService {
      * Upload avatar cho người dùng lên MinIO.
      * @param file File avatar
      * @param userId Id người dùng
-     * @return Tên file (không phải presigned URL)
+     * @return Presigned URL công khai
      * @throws Exception Nếu upload lỗi
      */
     @Override
@@ -61,8 +61,9 @@ public class MinioFileStorageServiceImplement implements IFileStorageService {
                             .build()
             );
 
-            log.info("Successfully uploaded avatar: {} for user: {}", fileName, userId);
-            return fileName;
+            String presignedUrl = getPresignedUrl(minioConfig.getAvatarBucket(), fileName);
+            log.info("Successfully uploaded avatar: {} for user: {}, URL: {}", fileName, userId, presignedUrl);
+            return presignedUrl;
 
         } catch (MinioException e) {
             log.error("MinIO error during avatar upload for user {}: {}", userId, e.getMessage(), e);
@@ -158,7 +159,7 @@ public class MinioFileStorageServiceImplement implements IFileStorageService {
      * Tạo presigned URL có thời hạn để truy cập file an toàn.
      * @param bucketName Tên bucket
      * @param fileName Tên file
-     * @return Presigned URL có thời hạn 1 giờ
+     * @return Presigned URL có thời hạn theo cấu hình (mặc định 7 ngày)
      */
     private String getPresignedUrl(String bucketName, String fileName) throws Exception {
         return publicMinioClient.getPresignedObjectUrl(
@@ -166,7 +167,7 @@ public class MinioFileStorageServiceImplement implements IFileStorageService {
                         .method(Method.GET)
                         .bucket(bucketName)
                         .object(fileName)
-                        .expiry(1, TimeUnit.HOURS)
+                        .expiry(minioConfig.getPresignedUrlExpiryDays(), TimeUnit.DAYS)
                         .build()
         );
     }

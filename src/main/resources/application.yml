@@ -9,6 +9,9 @@ spring:
     url: jdbc:postgresql://postgres:5432/myapp
     username: postgres
     password: postgresql
+#    url: jdbc:postgresql://localhost:5436/quiziz
+#    username: demo
+#    password: demo
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -24,12 +27,11 @@ spring:
 
   ai:
     openai:
-      api-key: AIzaSyBzSjhORAYi38yjA60Ey64Xr20JiZdNIJo
+      api-key: key
+#      base-url: https://api.openai.com
       chat:
-        base-url: https://generativelanguage.googleapis.com
-        completions-path: /v1beta/openai/chat/completions
         options:
-          model: gemini-2.0-flash
+          model: gpt-4o-mini
 
   data:
     redis:
@@ -113,6 +115,7 @@ minio:
   image-bucket: quizizz-images
   avatar-bucket: quizizz-avatars
   secure: false
+  presigned-url-expiry-days: 7
 
 socketio:
   server:

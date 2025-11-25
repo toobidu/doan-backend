@@ -1,7 +1,7 @@
 package org.example.quizizz.util;
 
 import org.example.quizizz.model.entity.GameHistory;
-import org.example.quizizz.model.enums.Achievement;
+import org.example.quizizz.common.constants.Achievement;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

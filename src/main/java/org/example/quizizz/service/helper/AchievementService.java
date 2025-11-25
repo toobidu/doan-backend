@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.quizizz.model.dto.profile.ProfileStatsResponse;
 import org.example.quizizz.model.entity.GameHistory;
-import org.example.quizizz.model.enums.Achievement;
+import org.example.quizizz.common.constants.Achievement;
 import org.example.quizizz.repository.GameHistoryRepository;
 import org.example.quizizz.repository.GameSessionRepository;
 import org.example.quizizz.util.AchievementChecker;

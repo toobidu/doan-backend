@@ -39,7 +39,7 @@ public class ProfileServiceImplement implements IProfileService {
     private final AchievementService achievementService;
 
     /**
-     * Lấy thông tin profile của người dùng với presigned URL cho avatar.
+     * Lấy thông tin profile của người dùng.
      * @param userId Id người dùng
      * @return Thông tin profile
      */
@@ -57,15 +57,7 @@ public class ProfileServiceImplement implements IProfileService {
         response.setAddress(user.getAddress());
         response.setDob(user.getDob());
         response.setCreatedAt(user.getCreatedAt());
-        
-        // Tạo presigned URL cho avatar
-        if (user.getAvatarURL() != null && !user.getAvatarURL().isEmpty()) {
-            try {
-                response.setAvatarURL(fileStorageService.getAvatarUrl(user.getAvatarURL()));
-            } catch (Exception e) {
-                response.setAvatarURL(null);
-            }
-        }
+        response.setAvatarURL(user.getAvatarURL()); // avatarURL đã là presignedUrl
         
         return response;
     }
@@ -100,15 +92,11 @@ public class ProfileServiceImplement implements IProfileService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new NoSuchElementException("User not found with id: " + userId));
         
-        // Upload file mới và lưu tên file vào DB
-        String fileName = fileStorageService.uploadAvatar(file, userId);
-        user.setAvatarURL(fileName); // Lưu tên file thay vì URL
+        // Upload file và lưu presignedUrl vào DB
+        String presignedUrl = fileStorageService.uploadAvatar(file, userId);
+        user.setAvatarURL(presignedUrl);
         userRepository.save(user);
         
-        // Không cần cache vì presigned URL có thời hạn
-        
-        // Tạo presigned URL mới cho response
-        String presignedUrl = fileStorageService.getAvatarUrl(fileName);
         UpdateAvatarResponse response = new UpdateAvatarResponse();
         response.setAvatarURL(presignedUrl);
         return response;
@@ -125,13 +113,7 @@ public class ProfileServiceImplement implements IProfileService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new NoSuchElementException("User not found with id: " + userId));
         
-        String fileName = user.getAvatarURL();
-        if (fileName == null || fileName.isEmpty()) {
-            return null;
-        }
-        
-        // DB lưu tên file, cần tạo presigned URL
-        return fileStorageService.getAvatarUrl(fileName);
+        return user.getAvatarURL(); // avatarURL đã là presignedUrl
     }
     
     @Override
@@ -144,16 +126,7 @@ public class ProfileServiceImplement implements IProfileService {
                 response.setId(user.getId());
                 response.setUsername(user.getUsername());
                 response.setFullName(user.getFullName());
-                
-                // Tạo avatar URL nếu có
-                if (user.getAvatarURL() != null && !user.getAvatarURL().isEmpty()) {
-                    try {
-                        response.setAvatarURL(fileStorageService.getAvatarUrl(user.getAvatarURL()));
-                    } catch (Exception e) {
-                        response.setAvatarURL(null);
-                    }
-                }
-                
+                response.setAvatarURL(user.getAvatarURL()); // avatarURL đã là presignedUrl
                 return response;
             })
             .collect(java.util.stream.Collectors.toList());
@@ -173,11 +146,7 @@ public class ProfileServiceImplement implements IProfileService {
         response.setAddress(user.getAddress());
         response.setDob(user.getDob());
         response.setCreatedAt(user.getCreatedAt());
-        
-        // Tạo avatar URL nếu có
-        if (user.getAvatarURL() != null && !user.getAvatarURL().isEmpty()) {
-            response.setAvatarURL(fileStorageService.getAvatarUrl(user.getAvatarURL()));
-        }
+        response.setAvatarURL(user.getAvatarURL()); // avatarURL đã là presignedUrl
         
         return response;
     }
